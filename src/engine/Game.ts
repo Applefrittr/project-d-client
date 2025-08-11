@@ -1,11 +1,16 @@
+import FPSController from "./classes/FPSController";
 import Minion from "./classes/Minion";
+import settings from "./settings.json";
 
 export default class Game {
   ctx: CanvasRenderingContext2D | null = null;
   canvasWidth: number;
   canvasHeight: number;
   frame: number = 0;
-  minionArr: Minion[] = [new Minion(0, 0)];
+  fpsController = new FPSController();
+  minionArr = [new Minion(0, 0)];
+  timeDelta = 0;
+  renderRate = 1000 / settings["fps"];
 
   constructor(width: number, height: number) {
     this.canvasWidth = width;
@@ -29,9 +34,9 @@ export default class Game {
     window.cancelAnimationFrame(this.frame);
   }
 
-  loop = (currTime: number) => {
+  loop = (msNow: number) => {
     this.frame = window.requestAnimationFrame(this.loop);
-    //console.log(this.frame, currTime);
+    if (!this.fpsController.renderFrame(msNow)) return;
     this.render();
   };
 }
