@@ -1,4 +1,5 @@
 {
-  "arena-width": 1000,
-  "arena-height": 1000
+  "arena-width": 10000,
+  "arena-height": 10000,
+  "fps": 60
 }

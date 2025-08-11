@@ -16,7 +16,7 @@ export default class Game {
     this.ctx = ctx;
   }
 
-  update() {
+  render() {
     if (this.ctx) {
       this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
       this.minionArr.forEach((minion) => {
@@ -25,13 +25,13 @@ export default class Game {
     }
   }
 
-  stop() {
+  close() {
     window.cancelAnimationFrame(this.frame);
   }
 
   loop = (currTime: number) => {
     this.frame = window.requestAnimationFrame(this.loop);
-    console.log(this.frame, currTime);
-    this.update();
+    //console.log(this.frame, currTime);
+    this.render();
   };
 }

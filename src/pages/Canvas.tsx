@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import Game from "../engine/Game";
 import settings from "../engine/settings.json";
+import MouseScrollOverlay from "../components/MouseScrollOverlay";
 
 function Canvas() {
   const game = useMemo(
@@ -13,22 +14,25 @@ function Canvas() {
     if (canvasRef.current) {
       const ctx = canvasRef.current.getContext("2d");
       game.setCanvasContext(ctx);
+
       game.loop(performance.now());
     }
 
     return () => {
-      game.stop();
+      game.close();
     };
   }, []);
 
   return (
     <>
-      <h1>Project D</h1>
-      <canvas
-        height={settings["arena-height"]}
-        width={settings["arena-width"]}
-        ref={canvasRef}
-      ></canvas>
+      <section className="relative scroll-m-0">
+        <MouseScrollOverlay />
+        <canvas
+          height={settings["arena-height"]}
+          width={settings["arena-width"]}
+          ref={canvasRef}
+        ></canvas>
+      </section>
     </>
   );
 }
