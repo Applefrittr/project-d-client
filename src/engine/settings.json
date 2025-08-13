@@ -1,5 +1,6 @@
 {
-  "arena-width": 10000,
-  "arena-height": 10000,
-  "fps": 60
+  "arena-width": 1000,
+  "arena-height": 1000,
+  "fps": 60,
+  "time-between-waves": 5000
 }

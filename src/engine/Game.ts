@@ -1,5 +1,7 @@
 import FPSController from "./classes/FPSController";
 import Minion from "./classes/Minion";
+import spawnWave from "./functions/spawnWave";
+import initializeMinionPool from "./functions/intializeMinionPool";
 import settings from "./settings.json";
 
 export default class Game {
@@ -8,8 +10,8 @@ export default class Game {
   canvasHeight: number;
   frame: number = 0;
   fpsController = new FPSController();
-  minionArr = [new Minion(0, 0)];
-  timeDelta = 0;
+  prevWaveTime: number = 0;
+  minionPool: Minion[] | null = null;
   renderRate = 1000 / settings["fps"];
 
   constructor(width: number, height: number) {
@@ -21,10 +23,19 @@ export default class Game {
     this.ctx = ctx;
   }
 
+  // intialize creates intial gamestate and creates object pools
+  initialize() {
+    this.minionPool = initializeMinionPool();
+
+    this.prevWaveTime = performance.now();
+    spawnWave(this.minionPool);
+  }
+
+  // render function loops through all game assets (class instances) and calls their respective update()
   render() {
     if (this.ctx) {
       this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
-      this.minionArr.forEach((minion) => {
+      this.minionPool?.forEach((minion) => {
         minion.update(this.ctx);
       });
     }
@@ -34,9 +45,23 @@ export default class Game {
     window.cancelAnimationFrame(this.frame);
   }
 
+  // main game loop -> loop is executed via requestAnimationFrame, checks game state, keeps track of game time, checks for win/lose conditions and calls render function
   loop = (msNow: number) => {
     this.frame = window.requestAnimationFrame(this.loop);
+    //console.log(msNow, this.prevWaveTime);
+
+    // fpsController ensures render and game state checks are locked to specific FPS
     if (!this.fpsController.renderFrame(msNow)) return;
+
+    // spawn new wave if difference between the current time and the prev wave time is more than x seconds
+    if (
+      msNow - this.prevWaveTime >= settings["time-between-waves"] &&
+      this.minionPool
+    ) {
+      spawnWave(this.minionPool);
+      this.prevWaveTime = msNow;
+    }
+
     this.render();
   };
 }

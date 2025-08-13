@@ -15,6 +15,7 @@ function Canvas() {
       const ctx = canvasRef.current.getContext("2d");
       game.setCanvasContext(ctx);
 
+      game.initialize();
       game.loop(performance.now());
     }
 
