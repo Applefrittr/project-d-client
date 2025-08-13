@@ -2,7 +2,7 @@ import type Minion from "../classes/Minion";
 
 // Iterate through the Minion Pool and assign the team property to unused Minions
 export default function spawnWave(pool: Minion[]) {
-  const waveSize = 3;
+  const waveSize = 1;
 
   let redCount = 0,
     blueCount = 0,

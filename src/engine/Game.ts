@@ -11,7 +11,7 @@ export default class Game {
   frame: number = 0;
   fpsController = new FPSController();
   prevWaveTime: number = 0;
-  minionPool: Minion[] | null = null;
+  minionPool: Minion[] = [];
   renderRate = 1000 / settings["fps"];
 
   constructor(width: number, height: number) {
@@ -25,7 +25,7 @@ export default class Game {
 
   // intialize creates intial gamestate and creates object pools
   initialize() {
-    this.minionPool = initializeMinionPool();
+    this.minionPool = initializeMinionPool(this.minionPool, 100);
 
     this.prevWaveTime = performance.now();
     spawnWave(this.minionPool);
@@ -35,7 +35,9 @@ export default class Game {
   render() {
     if (this.ctx) {
       this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
-      this.minionPool?.forEach((minion) => {
+      this.minionPool.forEach((minion) => {
+        if (minion.team === null) return;
+        minion.detectTarget(this.minionPool);
         minion.update(this.ctx);
       });
     }
