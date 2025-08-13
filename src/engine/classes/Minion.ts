@@ -1,26 +1,30 @@
 import settings from "../settings.json";
 import getDistanceBetweenObjects from "../utils/getDistanceBetweenObjects";
+import updateObjectPathingToTarget from "../utils/updateObjectPathingToTarget";
 import GameObject from "./GameObject";
 
 export default class Minion extends GameObject {
-  dx: number = 0;
-  dy: number = 0;
   team: string | null = null;
-  target: Minion | null = null;
-  argoRange = 100;
+  argoRange = 200;
 
+  // assigns Minion to a team and positions on canvas -> function is invoked when spawnWave is called during main Game loop
   assignTeam(team: "red" | "blue") {
     this.team = team;
     if (team === "blue") {
-      this.x = 0;
+      this.x = 250;
       this.y = 0;
-      this.dx = 1;
-      this.dy = 1;
+      this.targetCoordinates = {
+        x: settings["arena-width"],
+        y: settings["arena-height"],
+      };
+      // this.dx = 1;
+      // this.dy = 1;
     } else {
-      this.x = settings["arena-width"];
+      this.x = settings["arena-width"] - 200;
       this.y = settings["arena-height"];
-      this.dx = -1;
-      this.dy = -1;
+      this.targetCoordinates = { x: 0, y: 0 };
+      // this.dx = -1;
+      // this.dy = -1;
     }
   }
 
@@ -40,15 +44,15 @@ export default class Minion extends GameObject {
         targetDistance = currDistance;
       }
     }
-    this.target = currTarget;
+    if (currTarget) {
+      this.target = currTarget;
+      this.targetCoordinates = { x: this.target.x, y: this.target.y };
+    }
   }
 
   reset() {
     this.team = null;
-    this.x = 0;
-    this.y = 0;
-    this.dx = 0;
-    this.dy = 0;
+    super.reset();
   }
 
   draw(ctx: CanvasRenderingContext2D) {
@@ -64,16 +68,20 @@ export default class Minion extends GameObject {
   update(ctx: CanvasRenderingContext2D | null) {
     // check bounding of Minion, if out of bounds, reset to default settings
     // TEMP - needed only during dev
-    if (this.x < 0 || this.x > settings["arena-width"]) this.reset();
+    if (this.x < 0 || this.x > settings["arena-width"]) {
+      this.reset();
+      return;
+    }
 
     // update position coordinates and draw to canvas
     if (ctx && typeof this.team === "string") {
+      [this.dx, this.dy] = updateObjectPathingToTarget(this);
       this.x += this.dx;
       this.y += this.dy;
       this.draw(ctx);
     }
 
     // testing target detection
-    if (this.target) this.team = "green";
+    //if (this.target) this.team = "green";
   }
 }

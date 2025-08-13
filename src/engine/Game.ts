@@ -45,6 +45,7 @@ export default class Game {
 
   close() {
     window.cancelAnimationFrame(this.frame);
+    this.minionPool = [];
   }
 
   // main game loop -> loop is executed via requestAnimationFrame, checks game state, keeps track of game time, checks for win/lose conditions and calls render function
