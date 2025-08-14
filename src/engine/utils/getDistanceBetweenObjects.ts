@@ -1,4 +1,5 @@
 import type GameObject from "../classes/GameObject";
+import roundHundrethPercision from "./roundHundrethPercision";
 
 // Use Pythagorean Theorem to find distance between 2 game objects
 export default function getDistanceBetweenObjects(
@@ -8,5 +9,5 @@ export default function getDistanceBetweenObjects(
   const a = (obj1.x - obj2.x) ** 2;
   const b = (obj1.y - obj2.y) ** 2;
 
-  return Math.round(Math.sqrt(a + b) * 100) / 100;
+  return roundHundrethPercision(Math.sqrt(a + b));
 }

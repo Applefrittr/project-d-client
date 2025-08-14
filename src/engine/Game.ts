@@ -3,11 +3,14 @@ import Minion from "./classes/Minion";
 import spawnWave from "./functions/spawnWave";
 import initializeMinionPool from "./functions/intializeMinionPool";
 import settings from "./settings.json";
+import Fortress from "./classes/Fortress";
 
 export default class Game {
   ctx: CanvasRenderingContext2D | null = null;
   canvasWidth: number;
   canvasHeight: number;
+  fortressRed: Fortress | null = null;
+  fortressBlue: Fortress | null = null;
   frame: number = 0;
   fpsController = new FPSController();
   prevWaveTime: number = 0;
@@ -25,10 +28,15 @@ export default class Game {
 
   // intialize creates intial gamestate and creates object pools
   initialize() {
+    this.fortressRed = new Fortress("red");
+    this.fortressBlue = new Fortress("blue");
     this.minionPool = initializeMinionPool(this.minionPool, 100);
 
     this.prevWaveTime = performance.now();
-    spawnWave(this.minionPool);
+    spawnWave(this.minionPool, {
+      red: this.fortressRed,
+      blue: this.fortressBlue,
+    });
   }
 
   // render function loops through all game assets (class instances) and calls their respective update()
@@ -59,9 +67,14 @@ export default class Game {
     // spawn new wave if difference between the current time and the prev wave time is more than x seconds
     if (
       msNow - this.prevWaveTime >= settings["time-between-waves"] &&
-      this.minionPool
+      this.minionPool &&
+      this.fortressRed &&
+      this.fortressBlue
     ) {
-      spawnWave(this.minionPool);
+      spawnWave(this.minionPool, {
+        red: this.fortressRed,
+        blue: this.fortressBlue,
+      });
       this.prevWaveTime = msNow;
     }
 

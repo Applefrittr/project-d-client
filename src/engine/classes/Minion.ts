@@ -1,6 +1,8 @@
 import settings from "../settings.json";
 import getDistanceBetweenObjects from "../utils/getDistanceBetweenObjects";
-import updateObjectPathingToTarget from "../utils/updateObjectPathingToTarget";
+
+import updateObjectVectorToTarget from "../utils/updateObjectVectorToTarget";
+import Fortress from "./Fortress";
 import GameObject from "./GameObject";
 
 export default class Minion extends GameObject {
@@ -11,27 +13,18 @@ export default class Minion extends GameObject {
   assignTeam(team: "red" | "blue") {
     this.team = team;
     if (team === "blue") {
-      this.x = 250;
+      this.x = 100;
       this.y = 0;
-      this.targetCoordinates = {
-        x: settings["arena-width"],
-        y: settings["arena-height"],
-      };
-      // this.dx = 1;
-      // this.dy = 1;
     } else {
-      this.x = settings["arena-width"] - 200;
+      this.x = settings["arena-width"] - 40;
       this.y = settings["arena-height"];
-      this.targetCoordinates = { x: 0, y: 0 };
-      // this.dx = -1;
-      // this.dy = -1;
     }
   }
 
   // iterates through an object pool to detect potential targets and assigns the closest one as the target
   // skips if Minion already has a target assigned
   detectTarget(pool: Minion[]) {
-    if (this.target) return;
+    if (!(this.target instanceof Fortress)) return;
     let currTarget: Minion | null = null,
       targetDistance: number | null = Infinity;
 
@@ -46,7 +39,6 @@ export default class Minion extends GameObject {
     }
     if (currTarget) {
       this.target = currTarget;
-      this.targetCoordinates = { x: this.target.x, y: this.target.y };
     }
   }
 
@@ -73,15 +65,15 @@ export default class Minion extends GameObject {
       return;
     }
 
-    // update position coordinates and draw to canvas
+    // update direction vectors, position coordinates and draw to canvas
     if (ctx && typeof this.team === "string") {
-      [this.dx, this.dy] = updateObjectPathingToTarget(this);
-      this.x += this.dx;
-      this.y += this.dy;
+      [this.dx, this.dy] = updateObjectVectorToTarget(this);
+      this.x = Math.round(this.x + this.dx);
+      this.y = Math.round(this.y + this.dy);
       this.draw(ctx);
     }
 
     // testing target detection
-    //if (this.target) this.team = "green";
+    if (this.target instanceof Minion) this.team = "green";
   }
 }

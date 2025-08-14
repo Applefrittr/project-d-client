@@ -6,7 +6,6 @@ export default class GameObject {
   dx: number = 0;
   dy: number = 0;
   target: GameObject | null = null;
-  targetCoordinates = { x: 0, y: settings["arena-height"] };
 
   reset() {
     this.x = 0;
@@ -14,6 +13,5 @@ export default class GameObject {
     this.dx = 0;
     this.dy = 0;
     this.target = null;
-    this.targetCoordinates = { x: 0, y: settings["arena-height"] };
   }
 }

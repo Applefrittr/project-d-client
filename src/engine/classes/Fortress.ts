@@ -8,7 +8,7 @@ export default class Fortress extends GameObject {
   constructor(team: "red" | "blue") {
     super();
     this.team = team;
-    if ((team = "red")) {
+    if (team === "red") {
       this.x = settings["arena-width"] - 10;
       this.y = settings["arena-height"] - 10;
     } else {
