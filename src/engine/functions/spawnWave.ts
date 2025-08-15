@@ -1,5 +1,6 @@
 import type Fortress from "../classes/Fortress";
 import type Minion from "../classes/Minion";
+import settings from "../settings.json";
 
 type Targets = {
   [team: string]: Fortress;
@@ -7,7 +8,7 @@ type Targets = {
 
 // Iterate through the Minion Pool and assign the team property to unused Minions
 export default function spawnWave(pool: Minion[], targets: Targets) {
-  const waveSize = 1;
+  const waveSize = settings["minions-per-wave"];
 
   let redCount = 0,
     blueCount = 0,

@@ -14,7 +14,7 @@ export default class Minion extends GameObject {
   assignTeam(team: "red" | "blue") {
     this.team = team;
     if (team === "blue") {
-      this.x = 100;
+      this.x = 0;
       this.y = 0;
     } else {
       this.x = settings["arena-width"];
