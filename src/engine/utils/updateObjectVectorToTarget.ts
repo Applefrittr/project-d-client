@@ -11,8 +11,8 @@ export default function updateObjectVectorToTarget(obj: GameObject) {
 
     const dist = Math.round(Math.sqrt(dx ** 2 + dy ** 2));
     if (dist > 0) {
-      dx = Math.round(dx / dist);
-      dy = Math.round(dy / dist);
+      dx = roundHundrethPercision(dx / dist);
+      dy = roundHundrethPercision(dy / dist);
     }
 
     return [dx, dy];

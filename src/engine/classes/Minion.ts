@@ -1,5 +1,6 @@
 import settings from "../settings.json";
 import getDistanceBetweenObjects from "../utils/getDistanceBetweenObjects";
+import roundHundrethPercision from "../utils/roundHundrethPercision";
 
 import updateObjectVectorToTarget from "../utils/updateObjectVectorToTarget";
 import Fortress from "./Fortress";
@@ -7,7 +8,7 @@ import GameObject from "./GameObject";
 
 export default class Minion extends GameObject {
   team: string | null = null;
-  argoRange = 200;
+  argoRange = 100;
 
   // assigns Minion to a team and positions on canvas -> function is invoked when spawnWave is called during main Game loop
   assignTeam(team: "red" | "blue") {
@@ -16,7 +17,7 @@ export default class Minion extends GameObject {
       this.x = 100;
       this.y = 0;
     } else {
-      this.x = settings["arena-width"] - 40;
+      this.x = settings["arena-width"];
       this.y = settings["arena-height"];
     }
   }
@@ -68,8 +69,8 @@ export default class Minion extends GameObject {
     // update direction vectors, position coordinates and draw to canvas
     if (ctx && typeof this.team === "string") {
       [this.dx, this.dy] = updateObjectVectorToTarget(this);
-      this.x = Math.round(this.x + this.dx);
-      this.y = Math.round(this.y + this.dy);
+      this.x = roundHundrethPercision(this.x + this.dx);
+      this.y = roundHundrethPercision(this.y + this.dy);
       this.draw(ctx);
     }
 
