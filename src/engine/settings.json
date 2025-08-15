@@ -1,0 +1,7 @@
+{
+  "arena-width": 500,
+  "arena-height": 500,
+  "fps": 60,
+  "time-between-waves": 5000,
+  "minions-per-wave": 3
+}
