@@ -3,7 +3,6 @@ import getDistanceBetweenObjects from "../utils/getDistanceBetweenObjects";
 import roundHundrethPercision from "../utils/roundHundrethPercision";
 
 import updateObjectVectorToTarget from "../utils/updateObjectVectorToTarget";
-import Fortress from "./Fortress";
 import GameObject from "./GameObject";
 
 export default class Minion extends GameObject {
@@ -16,10 +15,10 @@ export default class Minion extends GameObject {
   assignTeam(team: "red" | "blue") {
     this.team = team;
     if (team === "blue") {
-      this.x = 150;
+      this.x = 50;
       this.y = 0;
     } else {
-      this.x = settings["arena-width"] - 25;
+      this.x = settings["arena-width"] - 50;
       this.y = settings["arena-height"];
     }
   }
@@ -41,6 +40,32 @@ export default class Minion extends GameObject {
     if (currTarget) {
       this.target = currTarget;
     }
+  }
+
+  detectTeamCollision(team: GameObject[]) {
+    //let collidedCount = 0;
+    for (let i = 0; i < team.length; i++) {
+      if (this.id === team[i].id) continue;
+      if (
+        getDistanceBetweenObjects(this, team[i]) <= this.radius * 2 &&
+        !this.inCombat
+      ) {
+        this.pathAroundTeamObject(team[i]);
+      }
+    }
+  }
+
+  // pathing around collided team objects -> repositions Minion on the outside circumference of collided team object based on angle
+  // of collision
+  pathAroundTeamObject(target: GameObject) {
+    let radAngle = 0;
+    radAngle = Math.atan2(this.x - target.x, this.y - target.y);
+    this.y = roundHundrethPercision(
+      target.y + (this.radius + target.radius) * Math.cos(radAngle)
+    );
+    this.x = roundHundrethPercision(
+      target.x + (this.radius + target.radius) * Math.sin(radAngle)
+    );
   }
 
   reset() {
@@ -76,8 +101,10 @@ export default class Minion extends GameObject {
       } else {
         [this.dx, this.dy] = updateObjectVectorToTarget(this);
       }
+
       this.x = roundHundrethPercision(this.x + this.dx);
       this.y = roundHundrethPercision(this.y + this.dy);
+
       this.draw(ctx);
     }
 

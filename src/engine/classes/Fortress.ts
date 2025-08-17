@@ -9,11 +9,11 @@ export default class Fortress extends GameObject {
     super();
     this.team = team;
     if (team === "red") {
-      this.x = settings["arena-width"] - 10;
-      this.y = settings["arena-height"] - 10;
+      this.x = settings["arena-width"] + 1500;
+      this.y = settings["arena-height"] + 1500;
     } else {
-      this.x = 10;
-      this.y = 10;
+      this.x = -1500;
+      this.y = -1500;
     }
   }
 }

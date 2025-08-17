@@ -43,8 +43,13 @@ export default class Game {
       this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
       this.minionPool.forEach((minion) => {
         if (minion.team === null) return;
-        else if (minion.team === "blue") minion.detectTarget(this.redTeam);
-        else minion.detectTarget(this.blueTeam);
+        else if (minion.team === "blue") {
+          minion.detectTeamCollision(this.blueTeam);
+          minion.detectTarget(this.redTeam);
+        } else {
+          minion.detectTarget(this.blueTeam);
+          minion.detectTeamCollision(this.redTeam);
+        }
         minion.update(this.ctx);
       });
     }
@@ -53,6 +58,8 @@ export default class Game {
   close() {
     window.cancelAnimationFrame(this.frame);
     this.minionPool = [];
+    this.redTeam = [];
+    this.blueTeam = [];
   }
 
   // main game loop -> loop is executed via requestAnimationFrame, checks game state, keeps track of game time, checks for win/lose conditions and calls render function

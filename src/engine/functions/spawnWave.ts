@@ -3,10 +3,6 @@ import type GameObject from "../classes/GameObject";
 import type Minion from "../classes/Minion";
 import settings from "../settings.json";
 
-type Targets = {
-  [team: string]: Fortress;
-};
-
 // Iterate through the Minion Pool and assign the team property to unused Minions
 export default function spawnWave(
   pool: Minion[],
@@ -49,5 +45,5 @@ export default function spawnWave(
     }
   }
 
-  console.log(pool);
+  console.log(pool, redTeam, blueTeam);
 }
