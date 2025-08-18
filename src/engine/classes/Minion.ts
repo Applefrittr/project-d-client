@@ -15,10 +15,10 @@ export default class Minion extends GameObject {
   assignTeam(team: "red" | "blue") {
     this.team = team;
     if (team === "blue") {
-      this.x = 50;
+      this.x = settings["arena-width"] / 2 + 25;
       this.y = 0;
     } else {
-      this.x = settings["arena-width"] - 50;
+      this.x = settings["arena-width"] / 2 - 25;
       this.y = settings["arena-height"];
     }
   }
@@ -60,11 +60,12 @@ export default class Minion extends GameObject {
   pathAroundTeamObject(target: GameObject) {
     let radAngle = 0;
     radAngle = Math.atan2(this.x - target.x, this.y - target.y);
+    //if (radAngle < -Math.PI / 4 || radAngle > (3 * Math.PI) / 4) return;
     this.y = roundHundrethPercision(
-      target.y + (this.radius + target.radius) * Math.cos(radAngle)
+      target.y + this.radius * 2 * Math.cos(radAngle)
     );
     this.x = roundHundrethPercision(
-      target.x + (this.radius + target.radius) * Math.sin(radAngle)
+      target.x + this.radius * 2 * Math.sin(radAngle)
     );
   }
 
