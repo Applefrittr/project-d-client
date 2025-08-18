@@ -47,8 +47,8 @@ export default class Game {
           minion.detectTeamCollision(this.blueTeam);
           minion.detectTarget(this.redTeam);
         } else {
-          minion.detectTarget(this.blueTeam);
           minion.detectTeamCollision(this.redTeam);
+          minion.detectTarget(this.blueTeam);
         }
         minion.update(this.ctx);
       });

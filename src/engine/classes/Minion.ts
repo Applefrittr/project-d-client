@@ -7,7 +7,7 @@ import GameObject from "./GameObject";
 
 export default class Minion extends GameObject {
   team: string | null = null;
-  argoRange = 100;
+  argoRange = 200;
   radius = 25;
   inCombat: boolean = false;
 
@@ -47,7 +47,7 @@ export default class Minion extends GameObject {
     for (let i = 0; i < team.length; i++) {
       if (this.id === team[i].id) continue;
       if (
-        getDistanceBetweenObjects(this, team[i]) <= this.radius * 2 &&
+        getDistanceBetweenObjects(this, team[i]) < this.radius * 2 &&
         !this.inCombat
       ) {
         this.pathAroundTeamObject(team[i]);
