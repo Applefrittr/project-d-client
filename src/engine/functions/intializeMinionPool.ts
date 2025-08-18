@@ -1,8 +1,11 @@
+import GameObject from "../classes/GameObject";
 import Minion from "../classes/Minion";
 
-export default function initializeMinionPool(pool: Minion[], count: number) {
+export default function initializeObjectPool(pool: Minion[], count: number) {
   for (let i = 0; i < count; i++) {
-    pool.push(new Minion());
+    const minion = new Minion();
+    minion.id = i;
+    pool.push(minion);
   }
 
   return pool;
