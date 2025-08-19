@@ -10,6 +10,7 @@ export default class Minion extends GameObject {
   argoRange = 200;
   radius = 25;
   avoidancePathing: string = "";
+  prevAttackTime: number = 0;
 
   // assigns Minion to a team and positions on canvas -> function is invoked when spawnWave is called during main Game loop
   assignTeam(team: "red" | "blue") {
@@ -84,7 +85,14 @@ export default class Minion extends GameObject {
     }
   }
 
-  attack(target: GameObject) {}
+  attack(currMs: number) {
+    if (this.target) {
+      if (currMs - this.prevAttackTime < settings["minion-attack-cooldown"])
+        return;
+      this.prevAttackTime = currMs;
+      this.target.hitPoints -= 10;
+    }
+  }
 
   destroy(team: Set<GameObject>) {
     for (const minion of team) {
@@ -104,6 +112,10 @@ export default class Minion extends GameObject {
       ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
       ctx.fill();
       ctx.closePath();
+
+      ctx.fillStyle = "black";
+      ctx.font = "16px serif";
+      ctx.fillText(this.hitPoints.toString(), this.x, this.y);
     }
   }
 

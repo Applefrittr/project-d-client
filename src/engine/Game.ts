@@ -39,26 +39,25 @@ export default class Game {
   }
 
   // render function loops through all game assets (class instances) and calls their respective update()
-  render() {
+  render(currMs: number) {
     if (this.ctx) {
       this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
       this.minionPool.forEach((minion) => {
         if (minion.team === null) return;
+        if (minion.inCombat) {
+          minion.attack(currMs);
+        }
         if (minion.team === "blue") {
-          if (minion.inCombat) {
-            setTimeout(() => {
-              minion.destroy(this.blueTeam);
-              return;
-            }, 10000);
+          if (minion.hitPoints <= 0) {
+            minion.destroy(this.blueTeam);
+            return;
           }
           minion.detectTeamCollision(this.blueTeam);
           minion.detectTarget(this.redTeam);
         } else {
-          if (minion.inCombat) {
-            setTimeout(() => {
-              minion.destroy(this.redTeam);
-              return;
-            }, 10000);
+          if (minion.hitPoints <= 0) {
+            minion.destroy(this.redTeam);
+            return;
           }
           minion.detectTeamCollision(this.redTeam);
           minion.detectTarget(this.blueTeam);
@@ -105,6 +104,6 @@ export default class Game {
       this.prevWaveTime = msNow;
     }
 
-    this.render();
+    this.render(msNow);
   };
 }
