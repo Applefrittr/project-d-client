@@ -9,6 +9,7 @@ export default class GameObject {
   radius: number = 0;
   target: GameObject | null = null;
   inCombat: boolean = false;
+  hitPoints: number = 0;
 
   reset() {
     this.x = 0;
@@ -18,6 +19,7 @@ export default class GameObject {
     this.radius = 0;
     this.target = null;
     this.inCombat = false;
+    this.hitPoints = 0;
     console.log(this);
   }
 }

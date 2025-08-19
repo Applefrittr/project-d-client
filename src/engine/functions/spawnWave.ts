@@ -20,6 +20,7 @@ export default function spawnWave(
       setTimeout(() => {
         pool[i].assignTeam("red");
         pool[i].radius = 25;
+        pool[i].hitPoints = settings["minion-hp"];
         redTeam.add(pool[i]);
         pool[i].target = [...blueTeam][0];
         i % 2 === 0
@@ -40,6 +41,7 @@ export default function spawnWave(
       setTimeout(() => {
         pool[j].assignTeam("blue");
         pool[j].radius = 25;
+        pool[j].hitPoints = settings["minion-hp"];
         blueTeam.add(pool[j]);
         pool[j].target = [...redTeam][0];
         j % 2 === 0
