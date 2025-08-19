@@ -25,41 +25,41 @@ export default class Minion extends GameObject {
 
   // iterates through an array of opposing Tmea GameObjects to detect potential targets and assigns the closest one as the target
   // skips if Minion is inCombat
-  detectTarget(oppTeam: GameObject[]) {
+  detectTarget(oppTeam: Set<GameObject>) {
     // if (this.inCombat) return;
     let currTarget: GameObject | null = null,
       targetDistance: number | null = Infinity;
 
-    for (let i = 0; i < oppTeam.length; i++) {
-      const currDistance = getDistanceBetweenObjects(this, oppTeam[i]);
+    for (const minion of oppTeam) {
+      const currDistance = getDistanceBetweenObjects(this, minion);
       if (currDistance < this.argoRange && currDistance < targetDistance) {
-        currTarget = oppTeam[i];
+        currTarget = minion;
         targetDistance = currDistance;
       }
     }
     if (currTarget) {
       this.target = currTarget;
     } else {
-      this.target = oppTeam[0];
+      this.target = [...oppTeam][0];
     }
   }
 
-  detectTeamCollision(team: GameObject[]) {
+  detectTeamCollision(team: Set<GameObject>) {
     //let collidedCount = 0;
-    for (let i = 0; i < team.length; i++) {
-      if (this.id === team[i].id) continue;
-      const dist = getDistanceBetweenObjects(this, team[i]);
-      // if (dist < this.radius * 2 && !this.inCombat && !team[i].inCombat) {
+    for (const minion of team) {
+      if (this.id === minion.id) continue;
+      const dist = getDistanceBetweenObjects(this, minion);
+      // if (dist < this.radius * 2 && !this.inCombat && !minion.inCombat) {
       //   const tempX = this.dx;
       //   const tempY = this.dy;
-      //   this.x += team[i].dx;
-      //   this.y += team[i].dy;
-      //   team[i].x += tempX;
-      //   team[i].y += tempY;
+      //   this.x += minion.dx;
+      //   this.y += minion.dy;
+      //   minion.x += tempX;
+      //   minion.y += tempY;
       // } else
 
       if (dist < this.radius * 2 && !this.inCombat) {
-        this.pathAroundTeamObject(team[i]);
+        this.pathAroundTeamObject(minion);
       } else if (dist < this.argoRange / 2 && !this.inCombat) {
         this.avoidancePathing === "left"
           ? (this.x = roundHundrethPercision(this.x - 0.25))
@@ -84,9 +84,17 @@ export default class Minion extends GameObject {
     }
   }
 
-  reset() {
-    this.team = null;
-    super.reset();
+  attack(target: GameObject) {}
+
+  destroy(team: Set<GameObject>) {
+    for (const minion of team) {
+      if (this === minion) {
+        this.team = null;
+        this.avoidancePathing = "";
+        super.reset();
+        return;
+      }
+    }
   }
 
   draw(ctx: CanvasRenderingContext2D) {
@@ -114,9 +122,6 @@ export default class Minion extends GameObject {
         this.dx = 0;
         this.dy = 0;
         this.inCombat = true;
-        // setTimeout(() => {
-        //   this.reset();
-        // }, 10000);
       } else {
         [this.dx, this.dy] = updateObjectVectorToTarget(this);
       }

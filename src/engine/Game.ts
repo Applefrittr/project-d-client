@@ -15,8 +15,9 @@ export default class Game {
   prevWaveTime: number = 0;
   minionPool: Minion[] = [];
   renderRate = 1000 / settings["fps"];
-  blueTeam: GameObject[] = [];
-  redTeam: GameObject[] = [];
+  blueTeam: Set<GameObject> = new Set();
+  redTeam: Set<GameObject> = new Set();
+  isPaused: boolean = false;
 
   constructor(width: number, height: number) {
     this.canvasWidth = width;
@@ -29,8 +30,8 @@ export default class Game {
 
   // intialize creates intial gamestate and creates object pools
   initialize() {
-    this.blueTeam.push(new Fortress("blue"));
-    this.redTeam.push(new Fortress("red"));
+    this.blueTeam.add(new Fortress("blue"));
+    this.redTeam.add(new Fortress("red"));
     this.minionPool = initializeMinionPool(this.minionPool, 100);
 
     this.prevWaveTime = performance.now();
@@ -43,10 +44,22 @@ export default class Game {
       this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
       this.minionPool.forEach((minion) => {
         if (minion.team === null) return;
-        else if (minion.team === "blue") {
+        if (minion.team === "blue") {
+          if (minion.inCombat) {
+            setTimeout(() => {
+              minion.destroy(this.blueTeam);
+              return;
+            }, 10000);
+          }
           minion.detectTeamCollision(this.blueTeam);
           minion.detectTarget(this.redTeam);
         } else {
+          if (minion.inCombat) {
+            setTimeout(() => {
+              minion.destroy(this.redTeam);
+              return;
+            }, 10000);
+          }
           minion.detectTeamCollision(this.redTeam);
           minion.detectTarget(this.blueTeam);
         }
@@ -58,8 +71,21 @@ export default class Game {
   close() {
     window.cancelAnimationFrame(this.frame);
     this.minionPool = [];
-    this.redTeam = [];
-    this.blueTeam = [];
+    this.redTeam = new Set();
+    this.blueTeam = new Set();
+  }
+
+  pause() {
+    if (!this.isPaused) {
+      cancelAnimationFrame(this.frame);
+      this.isPaused = true;
+    } else {
+      this.frame = window.requestAnimationFrame(this.loop);
+      this.isPaused = false;
+    }
+    console.log("minons: ", this.minionPool);
+    console.log("blue team: ", this.blueTeam);
+    console.log("red team: ", this.redTeam);
   }
 
   // main game loop -> loop is executed via requestAnimationFrame, checks game state, keeps track of game time, checks for win/lose conditions and calls render function

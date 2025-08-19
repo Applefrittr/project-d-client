@@ -18,5 +18,6 @@ export default class GameObject {
     this.radius = 0;
     this.target = null;
     this.inCombat = false;
+    console.log(this);
   }
 }

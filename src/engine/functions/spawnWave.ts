@@ -5,8 +5,8 @@ import settings from "../settings.json";
 // Iterate through the Minion Pool and assign the team property to unused Minions
 export default function spawnWave(
   pool: Minion[],
-  redTeam: GameObject[],
-  blueTeam: GameObject[]
+  redTeam: Set<GameObject>,
+  blueTeam: Set<GameObject>
 ) {
   const waveSize = settings["minions-per-wave"];
 
@@ -16,12 +16,12 @@ export default function spawnWave(
 
   for (let i = 0; i < pool.length; i++) {
     if (redCount >= waveSize) break;
-    else if (typeof pool[i].team === "string") continue;
-    else {
+    if (!pool[i].team) {
       setTimeout(() => {
         pool[i].assignTeam("red");
-        redTeam.push(pool[i]);
-        pool[i].target = blueTeam[0];
+        pool[i].radius = 25;
+        redTeam.add(pool[i]);
+        pool[i].target = [...blueTeam][0];
         i % 2 === 0
           ? (pool[i].avoidancePathing = "left")
           : (pool[i].avoidancePathing = "right");
@@ -35,12 +35,13 @@ export default function spawnWave(
 
   for (let j = pool.length - 1; j >= 0; j--) {
     if (blueCount >= waveSize) break;
-    else if (typeof pool[j].team === "string") continue;
-    else {
+
+    if (!pool[j].team) {
       setTimeout(() => {
         pool[j].assignTeam("blue");
-        blueTeam.push(pool[j]);
-        pool[j].target = redTeam[0];
+        pool[j].radius = 25;
+        blueTeam.add(pool[j]);
+        pool[j].target = [...redTeam][0];
         j % 2 === 0
           ? (pool[j].avoidancePathing = "left")
           : (pool[j].avoidancePathing = "right");
@@ -50,5 +51,5 @@ export default function spawnWave(
     }
   }
 
-  console.log(pool, redTeam, blueTeam);
+  console.log("wave spawned!");
 }
