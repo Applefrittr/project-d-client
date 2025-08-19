@@ -8,6 +8,7 @@ export default class GameObject {
   dy: number = 0;
   radius: number = 0;
   target: GameObject | null = null;
+  inCombat: boolean = false;
 
   reset() {
     this.x = 0;
@@ -16,5 +17,6 @@ export default class GameObject {
     this.dy = 0;
     this.radius = 0;
     this.target = null;
+    this.inCombat = false;
   }
 }

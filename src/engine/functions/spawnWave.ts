@@ -1,4 +1,3 @@
-import type Fortress from "../classes/Fortress";
 import type GameObject from "../classes/GameObject";
 import type Minion from "../classes/Minion";
 import settings from "../settings.json";
@@ -23,6 +22,9 @@ export default function spawnWave(
         pool[i].assignTeam("red");
         redTeam.push(pool[i]);
         pool[i].target = blueTeam[0];
+        i % 2 === 0
+          ? (pool[i].avoidancePathing = "left")
+          : (pool[i].avoidancePathing = "right");
       }, interval);
       redCount++;
       interval += 1000;
@@ -39,6 +41,9 @@ export default function spawnWave(
         pool[j].assignTeam("blue");
         blueTeam.push(pool[j]);
         pool[j].target = redTeam[0];
+        j % 2 === 0
+          ? (pool[j].avoidancePathing = "left")
+          : (pool[j].avoidancePathing = "right");
       }, interval);
       blueCount++;
       interval += 1000;

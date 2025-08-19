@@ -9,16 +9,16 @@ export default class Minion extends GameObject {
   team: string | null = null;
   argoRange = 200;
   radius = 25;
-  inCombat: boolean = false;
+  avoidancePathing: string = "";
 
   // assigns Minion to a team and positions on canvas -> function is invoked when spawnWave is called during main Game loop
   assignTeam(team: "red" | "blue") {
     this.team = team;
     if (team === "blue") {
-      this.x = settings["arena-width"] / 2 + 25;
+      this.x = settings["arena-width"] / 2;
       this.y = 0;
     } else {
-      this.x = settings["arena-width"] / 2 - 25;
+      this.x = settings["arena-width"] / 2;
       this.y = settings["arena-height"];
     }
   }
@@ -26,7 +26,7 @@ export default class Minion extends GameObject {
   // iterates through an array of opposing Tmea GameObjects to detect potential targets and assigns the closest one as the target
   // skips if Minion is inCombat
   detectTarget(oppTeam: GameObject[]) {
-    if (this.inCombat) return;
+    // if (this.inCombat) return;
     let currTarget: GameObject | null = null,
       targetDistance: number | null = Infinity;
 
@@ -39,6 +39,8 @@ export default class Minion extends GameObject {
     }
     if (currTarget) {
       this.target = currTarget;
+    } else {
+      this.target = oppTeam[0];
     }
   }
 
@@ -46,11 +48,22 @@ export default class Minion extends GameObject {
     //let collidedCount = 0;
     for (let i = 0; i < team.length; i++) {
       if (this.id === team[i].id) continue;
-      if (
-        getDistanceBetweenObjects(this, team[i]) < this.radius * 2 &&
-        !this.inCombat
-      ) {
+      const dist = getDistanceBetweenObjects(this, team[i]);
+      // if (dist < this.radius * 2 && !this.inCombat && !team[i].inCombat) {
+      //   const tempX = this.dx;
+      //   const tempY = this.dy;
+      //   this.x += team[i].dx;
+      //   this.y += team[i].dy;
+      //   team[i].x += tempX;
+      //   team[i].y += tempY;
+      // } else
+
+      if (dist < this.radius * 2 && !this.inCombat) {
         this.pathAroundTeamObject(team[i]);
+      } else if (dist < this.argoRange / 2 && !this.inCombat) {
+        this.avoidancePathing === "left"
+          ? (this.x = roundHundrethPercision(this.x - 0.25))
+          : (this.x = roundHundrethPercision(this.x + 0.25));
       }
     }
   }
@@ -58,15 +71,17 @@ export default class Minion extends GameObject {
   // pathing around collided team objects -> repositions Minion on the outside circumference of collided team object based on angle
   // of collision
   pathAroundTeamObject(target: GameObject) {
-    let radAngle = 0;
-    radAngle = Math.atan2(this.x - target.x, this.y - target.y);
-    //if (radAngle < -Math.PI / 4 || radAngle > (3 * Math.PI) / 4) return;
-    this.y = roundHundrethPercision(
-      target.y + this.radius * 2 * Math.cos(radAngle)
-    );
-    this.x = roundHundrethPercision(
-      target.x + this.radius * 2 * Math.sin(radAngle)
-    );
+    if (this.team) {
+      let avoidMag = this.avoidancePathing === "left" ? 0.05 : -0.05;
+      if (this.team === "red") avoidMag = -avoidMag;
+      const radAngle = Math.atan2(this.x - target.x, this.y - target.y);
+      this.y = roundHundrethPercision(
+        target.y + this.radius * 2 * Math.cos(radAngle + avoidMag)
+      );
+      this.x = roundHundrethPercision(
+        target.x + this.radius * 2 * Math.sin(radAngle + avoidMag)
+      );
+    }
   }
 
   reset() {
@@ -87,10 +102,10 @@ export default class Minion extends GameObject {
   update(ctx: CanvasRenderingContext2D | null) {
     // check bounding of Minion, if out of bounds, reset to default settings
     // TEMP - needed only during dev
-    if (this.x < 0 || this.x > settings["arena-width"]) {
-      this.reset();
-      return;
-    }
+    // if (this.x < 0 || this.x > settings["arena-width"]) {
+    //   this.reset();
+    //   return;
+    // }
 
     // update direction vectors, position coordinates and draw to canvas
     if (ctx && typeof this.team === "string" && this.target) {
@@ -99,6 +114,9 @@ export default class Minion extends GameObject {
         this.dx = 0;
         this.dy = 0;
         this.inCombat = true;
+        // setTimeout(() => {
+        //   this.reset();
+        // }, 10000);
       } else {
         [this.dx, this.dy] = updateObjectVectorToTarget(this);
       }
