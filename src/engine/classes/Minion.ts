@@ -136,6 +136,7 @@ export default class Minion extends GameObject {
         this.inCombat = true;
       } else {
         [this.dx, this.dy] = updateObjectVectorToTarget(this);
+        this.inCombat = false;
       }
 
       this.x = roundHundrethPercision(this.x + this.dx);
