@@ -9,7 +9,6 @@ export default class Minion extends GameObject {
   team: string | null = null;
   argoRange = 200;
   radius = 25;
-  avoidancePathing: string = "";
   prevAttackTime: number = 0;
 
   // assigns Minion to a team and positions on canvas -> function is invoked when spawnWave is called during main Game loop
@@ -24,10 +23,10 @@ export default class Minion extends GameObject {
     }
   }
 
-  // iterates through an array of opposing Tmea GameObjects to detect potential targets and assigns the closest one as the target
+  // iterates through the Set of opposing team GameObjects to detect potential targets and assigns the closest one to the Minion as the target
   // skips if Minion is inCombat
   detectTarget(oppTeam: Set<GameObject>) {
-    // if (this.inCombat) return;
+    if (this.inCombat) return;
     let currTarget: GameObject | null = null,
       targetDistance: number | null = Infinity;
 
@@ -38,6 +37,8 @@ export default class Minion extends GameObject {
         targetDistance = currDistance;
       }
     }
+
+    // Set closest target if one exists in argo range of Minion, otherwise set opposing Fortress as target
     if (currTarget) {
       this.target = currTarget;
     } else {
@@ -45,44 +46,38 @@ export default class Minion extends GameObject {
     }
   }
 
-  detectTeamCollision(team: Set<GameObject>) {
-    //let collidedCount = 0;
-    for (const minion of team) {
-      if (this.id === minion.id) continue;
-      const dist = getDistanceBetweenObjects(this, minion);
-      // if (dist < this.radius * 2 && !this.inCombat && !minion.inCombat) {
-      //   const tempX = this.dx;
-      //   const tempY = this.dy;
-      //   this.x += minion.dx;
-      //   this.y += minion.dy;
-      //   minion.x += tempX;
-      //   minion.y += tempY;
-      // } else
+  // Path adjustments to Minions target vector as it apporaches/collides with other objects on the same team
+  adjustPathingToTarget(team: Set<GameObject>) {
+    // return if Minion is currently in Combat -> we don't want to adjust a Minion's pathing if it is currently fighting an enemy
+    if (this.inCombat) return;
 
-      if (dist < this.radius * 2 && !this.inCombat) {
-        this.pathAroundTeamObject(minion);
-      } else if (dist < this.argoRange / 2 && !this.inCombat) {
-        this.avoidancePathing === "left"
-          ? (this.x = roundHundrethPercision(this.x - 0.25))
-          : (this.x = roundHundrethPercision(this.x + 0.25));
+    // loop through Set of team Game Objects
+    // iterate over the team in REVERSE ORDER OF INSERTION to ensure new Team Objects dont push Minion into older team Objects
+    for (const obj of Array.from(team).reverse()) {
+      // skip collision detection for the Minion against itself
+      if (this.id === obj.id) continue;
+
+      // calc distance between Minion and curr Game Object
+      const dist = getDistanceBetweenObjects(this, obj);
+
+      // call handleTeamCollision if Minion collides another team Game Object
+      if (dist < this.radius * 2) {
+        this.handleTeamCollision(obj);
       }
     }
   }
 
-  // pathing around collided team objects -> repositions Minion on the outside circumference of collided team object based on angle
-  // of collision
-  pathAroundTeamObject(target: GameObject) {
-    if (this.team) {
-      let avoidMag = this.avoidancePathing === "left" ? 0.05 : -0.05;
-      if (this.team === "red") avoidMag = -avoidMag;
-      const radAngle = Math.atan2(this.x - target.x, this.y - target.y);
-      this.y = roundHundrethPercision(
-        target.y + this.radius * 2 * Math.cos(radAngle + avoidMag)
-      );
-      this.x = roundHundrethPercision(
-        target.x + this.radius * 2 * Math.sin(radAngle + avoidMag)
-      );
-    }
+  handleTeamCollision(object: GameObject) {
+    // Calc angle of collision
+    const radAngle = Math.atan2(this.x - object.x, this.y - object.y);
+
+    // reposition Minion outside of collided team object to ensure no overlap based on collision angle
+    this.y = roundHundrethPercision(
+      object.y + this.radius * 2 * Math.cos(radAngle)
+    );
+    this.x = roundHundrethPercision(
+      object.x + this.radius * 2 * Math.sin(radAngle)
+    );
   }
 
   attack(currMs: number) {
@@ -95,14 +90,10 @@ export default class Minion extends GameObject {
   }
 
   destroy(team: Set<GameObject>) {
-    for (const minion of team) {
-      if (this === minion) {
-        this.team = null;
-        this.avoidancePathing = "";
-        super.reset();
-        return;
-      }
-    }
+    team.delete(this);
+    this.team = null;
+    super.reset();
+    return;
   }
 
   draw(ctx: CanvasRenderingContext2D) {

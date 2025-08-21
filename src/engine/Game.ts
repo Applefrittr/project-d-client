@@ -52,14 +52,14 @@ export default class Game {
             minion.destroy(this.blueTeam);
             return;
           }
-          minion.detectTeamCollision(this.blueTeam);
+          minion.adjustPathingToTarget(this.blueTeam);
           minion.detectTarget(this.redTeam);
         } else {
           if (minion.hitPoints <= 0) {
             minion.destroy(this.redTeam);
             return;
           }
-          minion.detectTeamCollision(this.redTeam);
+          minion.adjustPathingToTarget(this.redTeam);
           minion.detectTarget(this.blueTeam);
         }
         minion.update(this.ctx);

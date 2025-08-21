@@ -23,9 +23,6 @@ export default function spawnWave(
         pool[i].hitPoints = settings["minion-hp"];
         redTeam.add(pool[i]);
         pool[i].target = [...blueTeam][0];
-        i % 2 === 0
-          ? (pool[i].avoidancePathing = "left")
-          : (pool[i].avoidancePathing = "right");
       }, interval);
       redCount++;
       interval += 1000;
@@ -44,9 +41,6 @@ export default function spawnWave(
         pool[j].hitPoints = settings["minion-hp"];
         blueTeam.add(pool[j]);
         pool[j].target = [...redTeam][0];
-        j % 2 === 0
-          ? (pool[j].avoidancePathing = "left")
-          : (pool[j].avoidancePathing = "right");
       }, interval);
       blueCount++;
       interval += 1000;
