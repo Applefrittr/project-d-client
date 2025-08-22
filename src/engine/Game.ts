@@ -44,6 +44,9 @@ export default class Game {
   }
 
   // render function loops through all game assets (class instances) and calls their respective update()
+
+  // REWORK THIS to interate through team Sets instead of Minion pool
+  // will have to add type property to GameObject class (ex: Minon, Tower, Fortress, etc)
   render(currMs: number) {
     if (this.ctx) {
       this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
@@ -68,6 +71,10 @@ export default class Game {
           minion.detectTarget(this.blueTeam);
         }
         minion.update(this.ctx);
+
+        // temp just to render Fortresses
+        [...this.redTeam][0].draw(this.ctx);
+        [...this.blueTeam][0].draw(this.ctx);
       });
     }
   }

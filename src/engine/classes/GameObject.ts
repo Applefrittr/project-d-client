@@ -20,6 +20,9 @@ export default class GameObject {
     this.target = null;
     this.inCombat = false;
     this.hitPoints = 0;
-    console.log(this);
+  }
+
+  draw(ctx: CanvasRenderingContext2D | null) {
+    // temporary super method draw()
   }
 }

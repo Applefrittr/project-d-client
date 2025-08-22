@@ -7,7 +7,11 @@ export default function handleObjectCollision(
   collided: GameObject
 ) {
   // Calc angle of collision
-  const radAngle = Math.atan2(subject.x - collided.x, subject.y - collided.y);
+  let radAngle = Math.atan2(subject.x - collided.x, subject.y - collided.y);
+
+  // modifier to adjust angle of impact, helps to prevent minions stacking if angle of collision is 0
+  // helps with initial minion clash to form battle line
+  if (radAngle === 0) radAngle += 0.25;
 
   // reposition subject Game Object outside of collided Game Object to ensure no overlap based on collision angle
   subject.y = roundHundrethPercision(

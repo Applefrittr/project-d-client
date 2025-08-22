@@ -8,7 +8,7 @@ import GameObject from "./GameObject";
 export default class Minion extends GameObject {
   team: string | null = null;
   argoRange = 200;
-  radius = 25;
+  radius = settings["minion-radius"];
   prevAttackTime: number = 0;
 
   // assigns Minion to a team and positions on canvas -> function is invoked when spawnWave is called during main Game loop
@@ -16,10 +16,10 @@ export default class Minion extends GameObject {
     this.team = team;
     if (team === "blue") {
       this.x = settings["arena-width"] / 2;
-      this.y = 0;
+      this.y = settings["tower-radius"];
     } else {
       this.x = settings["arena-width"] / 2;
-      this.y = settings["arena-height"];
+      this.y = settings["arena-height"] - settings["tower-radius"];
     }
   }
 
