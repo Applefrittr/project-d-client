@@ -3,6 +3,7 @@
   "arena-height": 750,
   "fps": 60,
   "time-between-waves": 10000,
+  "time-between-minions": 1000,
   "minions-per-wave": 3,
   "minion-hp": 100,
   "minion-attack-cooldown": 2000,
