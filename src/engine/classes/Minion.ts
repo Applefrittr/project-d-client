@@ -1,7 +1,7 @@
 import settings from "../settings.json";
 import getDistanceBetweenObjects from "../utils/getDistanceBetweenObjects";
 import roundHundrethPercision from "../utils/roundHundrethPercision";
-
+import handleObjectCollision from "../utils/handleObjectCollision";
 import updateObjectVectorToTarget from "../utils/updateObjectVectorToTarget";
 import GameObject from "./GameObject";
 
@@ -62,22 +62,9 @@ export default class Minion extends GameObject {
 
       // call handleTeamCollision if Minion collides another team Game Object
       if (dist < this.radius * 2) {
-        this.handleTeamCollision(obj);
+        handleObjectCollision(this, obj);
       }
     }
-  }
-
-  handleTeamCollision(object: GameObject) {
-    // Calc angle of collision
-    const radAngle = Math.atan2(this.x - object.x, this.y - object.y);
-
-    // reposition Minion outside of collided team object to ensure no overlap based on collision angle
-    this.y = roundHundrethPercision(
-      object.y + this.radius * 2 * Math.cos(radAngle)
-    );
-    this.x = roundHundrethPercision(
-      object.x + this.radius * 2 * Math.sin(radAngle)
-    );
   }
 
   attack(currMs: number) {
@@ -124,14 +111,14 @@ export default class Minion extends GameObject {
       if (getDistanceBetweenObjects(this, this.target) <= this.radius * 2) {
         this.dx = 0;
         this.dy = 0;
+        handleObjectCollision(this, this.target);
         this.inCombat = true;
       } else {
         [this.dx, this.dy] = updateObjectVectorToTarget(this);
         this.inCombat = false;
+        this.x = roundHundrethPercision(this.x + this.dx);
+        this.y = roundHundrethPercision(this.y + this.dy);
       }
-
-      this.x = roundHundrethPercision(this.x + this.dx);
-      this.y = roundHundrethPercision(this.y + this.dy);
 
       this.draw(ctx);
     }

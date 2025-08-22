@@ -21,6 +21,8 @@ export default class Game {
   redTeam: Set<GameObject> = new Set();
   isPaused: boolean = false;
   isWaveSpawning: boolean = true;
+  startTime: number = 0;
+  pausedTime: number = 0;
 
   constructor(width: number, height: number) {
     this.canvasWidth = width;
@@ -80,8 +82,10 @@ export default class Game {
   pause() {
     if (!this.isPaused) {
       cancelAnimationFrame(this.frame);
+      this.pausedTime += performance.now() - (this.startTime + this.startTime);
       this.isPaused = true;
     } else {
+      this.startTime = performance.now();
       this.frame = window.requestAnimationFrame(this.loop);
       this.isPaused = false;
     }
@@ -92,35 +96,32 @@ export default class Game {
 
   // main game loop -> loop is executed via requestAnimationFrame, checks game state, keeps track of game time, checks for win/lose conditions and calls render function
   loop = (msNow: number) => {
+    // set intial start time of game loop
+    if (!this.startTime) this.startTime = msNow;
+
+    // Current in game time -> used for gamestate checks and rendering
+    // Ensures game continues at a consistance pace, even when game is paused/resumed
+    const gameTime = msNow - this.startTime - this.pausedTime;
+
     this.frame = window.requestAnimationFrame(this.loop);
-    //console.log(msNow, this.prevWaveTime);
 
     // fpsController ensures render and game state checks are locked to specific FPS
-    if (!this.fpsController.renderFrame(msNow)) return;
-
-    // spawn new wave if difference between the current time and the prev wave time is more than x seconds
-    // if (
-    //   msNow - this.prevWaveTime >= settings["time-between-waves"] &&
-    //   this.minionPool
-    // ) {
-    //   spawnWave(this.minionPool, this.redTeam, this.blueTeam);
-    //   this.prevWaveTime = msNow;
-    // }
+    if (!this.fpsController.renderFrame(gameTime)) return;
 
     // toggle spawn wave switch on if time elasped between waves exceeds settings['time-between-waves]
-    if (msNow - this.prevWaveTime >= settings["time-between-waves"]) {
+    if (gameTime - this.prevWaveTime >= settings["time-between-waves"]) {
       this.isWaveSpawning = true;
-      this.prevWaveTime = msNow;
+      this.prevWaveTime = gameTime;
     }
 
     // spawns minions based on settings["time-between-minions"] interval
     if (
       this.isWaveSpawning &&
       this.minionPool &&
-      msNow - this.prevMinionSpawn >= settings["time-between-minions"]
+      gameTime - this.prevMinionSpawn >= settings["time-between-minions"]
     ) {
       spawnMinions(this.minionPool, this.redTeam, this.blueTeam);
-      this.prevMinionSpawn = msNow;
+      this.prevMinionSpawn = gameTime;
       this.minionsSpawnedCurrWave++;
       // checks to see if amount of minions spawned during current wave exceeds max per wave, if so, end wave spawning cycle
       if (this.minionsSpawnedCurrWave >= settings["minions-per-wave"]) {
@@ -129,6 +130,6 @@ export default class Game {
       }
     }
 
-    this.render(msNow);
+    this.render(gameTime);
   };
 }
