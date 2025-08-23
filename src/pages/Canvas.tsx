@@ -10,6 +10,10 @@ function Canvas() {
   );
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  function pauseGame() {
+    game.pause();
+  }
+
   useEffect(() => {
     if (canvasRef.current) {
       const ctx = canvasRef.current.getContext("2d");
@@ -28,6 +32,12 @@ function Canvas() {
     <>
       <section className="relative scroll-m-0">
         <MouseScrollOverlay />
+        <button
+          onClick={pauseGame}
+          className="m-7 bg-amber-300 p-2 hover:cursor-pointer"
+        >
+          Pause
+        </button>
         <canvas
           height={settings["arena-height"]}
           width={settings["arena-width"]}

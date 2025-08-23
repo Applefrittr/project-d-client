@@ -1,76 +1,86 @@
 import settings from "../settings.json";
 import getDistanceBetweenObjects from "../utils/getDistanceBetweenObjects";
 import roundHundrethPercision from "../utils/roundHundrethPercision";
-
+import handleObjectCollision from "../utils/handleObjectCollision";
 import updateObjectVectorToTarget from "../utils/updateObjectVectorToTarget";
 import GameObject from "./GameObject";
 
 export default class Minion extends GameObject {
   team: string | null = null;
   argoRange = 200;
-  radius = 25;
-  inCombat: boolean = false;
+  radius = settings["minion-radius"];
+  prevAttackTime: number = 0;
 
   // assigns Minion to a team and positions on canvas -> function is invoked when spawnWave is called during main Game loop
   assignTeam(team: "red" | "blue") {
     this.team = team;
     if (team === "blue") {
-      this.x = 50;
-      this.y = 0;
+      this.x = settings["arena-width"] / 2;
+      this.y = settings["tower-radius"];
     } else {
-      this.x = settings["arena-width"] - 50;
-      this.y = settings["arena-height"];
+      this.x = settings["arena-width"] / 2;
+      this.y = settings["arena-height"] - settings["tower-radius"];
     }
   }
 
-  // iterates through an array of opposing Tmea GameObjects to detect potential targets and assigns the closest one as the target
+  // iterates through the Set of opposing team GameObjects to detect potential targets and assigns the closest one to the Minion as the target
   // skips if Minion is inCombat
-  detectTarget(oppTeam: GameObject[]) {
+  detectTarget(oppTeam: Set<GameObject>) {
     if (this.inCombat) return;
     let currTarget: GameObject | null = null,
       targetDistance: number | null = Infinity;
 
-    for (let i = 0; i < oppTeam.length; i++) {
-      const currDistance = getDistanceBetweenObjects(this, oppTeam[i]);
+    for (const minion of oppTeam) {
+      const currDistance = getDistanceBetweenObjects(this, minion);
       if (currDistance < this.argoRange && currDistance < targetDistance) {
-        currTarget = oppTeam[i];
+        currTarget = minion;
         targetDistance = currDistance;
       }
     }
+
+    // Set closest target if one exists in argo range of Minion, otherwise set opposing Fortress as target
     if (currTarget) {
       this.target = currTarget;
+    } else {
+      this.target = [...oppTeam][0];
     }
   }
 
-  detectTeamCollision(team: GameObject[]) {
-    //let collidedCount = 0;
-    for (let i = 0; i < team.length; i++) {
-      if (this.id === team[i].id) continue;
-      if (
-        getDistanceBetweenObjects(this, team[i]) < this.radius * 2 &&
-        !this.inCombat
-      ) {
-        this.pathAroundTeamObject(team[i]);
+  // Path adjustments to Minions target vector as it apporaches/collides with other objects on the same team
+  adjustPathingToTarget(team: Set<GameObject>) {
+    // return if Minion is currently in Combat -> we don't want to adjust a Minion's pathing if it is currently fighting an enemy
+    if (this.inCombat) return;
+
+    // loop through Set of team Game Objects
+    // iterate over the team in REVERSE ORDER OF INSERTION to ensure new Team Objects dont push Minion into older team Objects
+    for (const obj of Array.from(team).reverse()) {
+      // skip collision detection for the Minion against itself
+      if (this.id === obj.id) continue;
+
+      // calc distance between Minion and curr Game Object
+      const dist = getDistanceBetweenObjects(this, obj);
+
+      // call handleTeamCollision if Minion collides another team Game Object
+      if (dist < this.radius * 2) {
+        handleObjectCollision(this, obj);
       }
     }
   }
 
-  // pathing around collided team objects -> repositions Minion on the outside circumference of collided team object based on angle
-  // of collision
-  pathAroundTeamObject(target: GameObject) {
-    let radAngle = 0;
-    radAngle = Math.atan2(this.x - target.x, this.y - target.y);
-    this.y = roundHundrethPercision(
-      target.y + (this.radius + target.radius) * Math.cos(radAngle)
-    );
-    this.x = roundHundrethPercision(
-      target.x + (this.radius + target.radius) * Math.sin(radAngle)
-    );
+  attack(currMs: number) {
+    if (this.target) {
+      if (currMs - this.prevAttackTime < settings["minion-attack-cooldown"])
+        return;
+      this.prevAttackTime = currMs;
+      this.target.hitPoints -= 10;
+    }
   }
 
-  reset() {
+  destroy(team: Set<GameObject>) {
+    team.delete(this);
     this.team = null;
     super.reset();
+    return;
   }
 
   draw(ctx: CanvasRenderingContext2D) {
@@ -80,16 +90,20 @@ export default class Minion extends GameObject {
       ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
       ctx.fill();
       ctx.closePath();
+
+      ctx.fillStyle = "black";
+      ctx.font = "16px serif";
+      ctx.fillText(this.hitPoints.toString(), this.x, this.y);
     }
   }
 
   update(ctx: CanvasRenderingContext2D | null) {
     // check bounding of Minion, if out of bounds, reset to default settings
     // TEMP - needed only during dev
-    if (this.x < 0 || this.x > settings["arena-width"]) {
-      this.reset();
-      return;
-    }
+    // if (this.x < 0 || this.x > settings["arena-width"]) {
+    //   this.reset();
+    //   return;
+    // }
 
     // update direction vectors, position coordinates and draw to canvas
     if (ctx && typeof this.team === "string" && this.target) {
@@ -97,13 +111,14 @@ export default class Minion extends GameObject {
       if (getDistanceBetweenObjects(this, this.target) <= this.radius * 2) {
         this.dx = 0;
         this.dy = 0;
+        handleObjectCollision(this, this.target);
         this.inCombat = true;
       } else {
         [this.dx, this.dy] = updateObjectVectorToTarget(this);
+        this.inCombat = false;
+        this.x = roundHundrethPercision(this.x + this.dx);
+        this.y = roundHundrethPercision(this.y + this.dy);
       }
-
-      this.x = roundHundrethPercision(this.x + this.dx);
-      this.y = roundHundrethPercision(this.y + this.dy);
 
       this.draw(ctx);
     }

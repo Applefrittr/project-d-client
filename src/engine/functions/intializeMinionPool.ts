@@ -1,4 +1,3 @@
-import GameObject from "../classes/GameObject";
 import Minion from "../classes/Minion";
 
 export default function initializeObjectPool(pool: Minion[], count: number) {

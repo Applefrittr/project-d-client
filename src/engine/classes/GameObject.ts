@@ -8,6 +8,8 @@ export default class GameObject {
   dy: number = 0;
   radius: number = 0;
   target: GameObject | null = null;
+  inCombat: boolean = false;
+  hitPoints: number = 0;
 
   reset() {
     this.x = 0;
@@ -16,5 +18,12 @@ export default class GameObject {
     this.dy = 0;
     this.radius = 0;
     this.target = null;
+    this.inCombat = false;
+    this.hitPoints = 0;
+  }
+
+  draw(ctx: CanvasRenderingContext2D | null) {
+    // temporary super method draw()
+    if (ctx) return;
   }
 }

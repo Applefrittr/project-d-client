@@ -7,13 +7,29 @@ export default class Fortress extends GameObject {
 
   constructor(team: "red" | "blue") {
     super();
+    this.radius = settings["tower-radius"];
+    this.hitPoints = settings["fortress-hitpoints"];
     this.team = team;
     if (team === "red") {
-      this.x = settings["arena-width"] + 1500;
-      this.y = settings["arena-height"] + 1500;
+      this.x = settings["arena-width"] / 2 + settings["tower-radius"];
+      this.y = settings["arena-height"] - settings["tower-radius"];
     } else {
-      this.x = -1500;
-      this.y = -1500;
+      this.x = settings["arena-width"] / 2 - settings["tower-radius"];
+      this.y = settings["tower-radius"];
+    }
+  }
+
+  draw(ctx: CanvasRenderingContext2D) {
+    if (this.team) {
+      ctx.beginPath();
+      ctx.fillStyle = this.team;
+      ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.closePath();
+
+      ctx.fillStyle = "black";
+      ctx.font = "16px serif";
+      ctx.fillText(this.hitPoints.toString(), this.x, this.y);
     }
   }
 }

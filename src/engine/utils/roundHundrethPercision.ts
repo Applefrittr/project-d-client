@@ -1,3 +1,3 @@
 export default function roundHundrethPercision(input: number) {
-  return Math.round(input * 100) / 100;
+  return Math.round(input * 10) / 10;
 }
