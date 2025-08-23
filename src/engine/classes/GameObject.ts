@@ -24,5 +24,6 @@ export default class GameObject {
 
   draw(ctx: CanvasRenderingContext2D | null) {
     // temporary super method draw()
+    if (ctx) return;
   }
 }
