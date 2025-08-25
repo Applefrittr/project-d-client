@@ -16,10 +16,10 @@ export default class Minion extends GameObject {
     this.team = team;
     if (team === "blue") {
       this.x = settings["arena-width"] / 2;
-      this.y = settings["tower-radius"];
+      this.y = settings["tower-radius"] + 50;
     } else {
       this.x = settings["arena-width"] / 2;
-      this.y = settings["arena-height"] - settings["tower-radius"];
+      this.y = settings["arena-height"] - settings["tower-radius"] - 50;
     }
   }
 
@@ -94,6 +94,13 @@ export default class Minion extends GameObject {
       ctx.fillStyle = "black";
       ctx.font = "16px serif";
       ctx.fillText(this.hitPoints.toString(), this.x, this.y);
+      ctx.fillText(this.id.toString(), this.x, this.y + 16);
+
+      ctx.beginPath();
+      ctx.strokeStyle = "black";
+      ctx.moveTo(this.x, this.y);
+      ctx.lineTo(this.x + this.dx * 50, this.y + this.dy * 50);
+      ctx.stroke();
     }
   }
 
