@@ -10,16 +10,19 @@ export default class Minion extends GameObject {
   argoRange = 200;
   radius = settings["minion-radius"];
   prevAttackTime: number = 0;
+  visionConeWidth: number = Math.PI / 4;
+  visConeRight: number = 0;
+  visConeLeft: number = 0;
 
   // assigns Minion to a team and positions on canvas -> function is invoked when spawnWave is called during main Game loop
   assignTeam(team: "red" | "blue") {
     this.team = team;
     if (team === "blue") {
       this.x = settings["arena-width"] / 2;
-      this.y = settings["tower-radius"];
+      this.y = settings["tower-radius"] + 50;
     } else {
       this.x = settings["arena-width"] / 2;
-      this.y = settings["arena-height"] - settings["tower-radius"];
+      this.y = settings["arena-height"] - settings["tower-radius"] - 50;
     }
   }
 
@@ -67,6 +70,13 @@ export default class Minion extends GameObject {
     }
   }
 
+  // apart of the avoidance algo, if any team Minion inComabt is in this cone, rotate velocity vector 90 degrees
+  calcVisionCone() {
+    const vectorAngle = Math.atan2(this.dy, this.dx);
+    this.visConeRight = vectorAngle - this.visionConeWidth / 2;
+    this.visConeLeft = vectorAngle + this.visionConeWidth / 2;
+  }
+
   attack(currMs: number) {
     if (this.target) {
       if (currMs - this.prevAttackTime < settings["minion-attack-cooldown"])
@@ -85,15 +95,40 @@ export default class Minion extends GameObject {
 
   draw(ctx: CanvasRenderingContext2D) {
     if (typeof this.team === "string") {
+      // TEMP - draw vision Cone
+      if (!this.inCombat) {
+        ctx.beginPath();
+        ctx.fillStyle = "rgba(255, 255, 0, 0.5)";
+        ctx.moveTo(this.x, this.y);
+        ctx.arc(
+          this.x,
+          this.y,
+          this.argoRange,
+          this.visConeRight,
+          this.visConeLeft
+        );
+        ctx.fill();
+        ctx.closePath;
+      }
+
+      // draw Minion body
       ctx.beginPath();
       ctx.fillStyle = this.team;
       ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
       ctx.fill();
       ctx.closePath();
 
+      // TEMP - Display hitpoints, ID, and Vector direction
       ctx.fillStyle = "black";
       ctx.font = "16px serif";
       ctx.fillText(this.hitPoints.toString(), this.x, this.y);
+      ctx.fillText(this.id.toString(), this.x, this.y + 16);
+
+      ctx.beginPath();
+      ctx.strokeStyle = "black";
+      ctx.moveTo(this.x, this.y);
+      ctx.lineTo(this.x + this.dx * 50, this.y + this.dy * 50);
+      ctx.stroke();
     }
   }
 
@@ -118,6 +153,7 @@ export default class Minion extends GameObject {
         this.inCombat = false;
         this.x = roundHundrethPercision(this.x + this.dx);
         this.y = roundHundrethPercision(this.y + this.dy);
+        this.calcVisionCone();
       }
 
       this.draw(ctx);
