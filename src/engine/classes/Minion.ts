@@ -1,13 +1,15 @@
 import settings from "../settings.json";
-import getDistanceBetweenObjects from "../utils/getDistanceBetweenObjects";
 import roundHundrethPercision from "../utils/roundHundrethPercision";
 import handleObjectCollision from "../utils/handleObjectCollision";
 import updateObjectVectorToTarget from "../utils/updateObjectVectorToTarget";
 import GameObject from "./GameObject";
+import getDistanceBetweenVectors from "../utils/getDistanceBetweenVectors";
 
 export default class Minion extends GameObject {
   team: string | null = null;
   argoRange = 200;
+  lookAhead = { x: 0, y: 0 };
+  lookAhead2x = { x: 0, y: 0 };
   radius = settings["minion-radius"];
   prevAttackTime: number = 0;
   visionConeWidth: number = Math.PI / 4;
@@ -35,7 +37,10 @@ export default class Minion extends GameObject {
       targetDistance: number | null = Infinity;
 
     for (const minion of oppTeam) {
-      const currDistance = getDistanceBetweenObjects(this, minion);
+      const currDistance = getDistanceBetweenVectors(
+        this.position,
+        minion.position
+      );
       if (currDistance < this.argoRange && currDistance < targetDistance) {
         currTarget = minion;
         targetDistance = currDistance;
@@ -62,7 +67,7 @@ export default class Minion extends GameObject {
       if (this.id === obj.id) continue;
 
       // calc distance between Minion and curr Game Object
-      const dist = getDistanceBetweenObjects(this, obj);
+      const dist = getDistanceBetweenVectors(this.position, obj.position);
 
       // call handleTeamCollision if Minion collides another team Game Object
       if (dist < this.radius * 2) {
@@ -147,7 +152,10 @@ export default class Minion extends GameObject {
     // update direction vectors, position coordinates and draw to canvas
     if (ctx && typeof this.team === "string" && this.target) {
       // detect if Minion is colliding with it's target; if so, set directional vectors to 0, otherwise call updateObjectVectorToTarget(this)
-      if (getDistanceBetweenObjects(this, this.target) <= this.radius * 2) {
+      if (
+        getDistanceBetweenVectors(this.position, this.target.position) <=
+        this.radius * 2
+      ) {
         this.velocity.x = 0;
         this.velocity.y = 0;
         handleObjectCollision(this, this.target);
