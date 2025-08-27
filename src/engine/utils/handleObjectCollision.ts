@@ -7,15 +7,18 @@ export default function handleObjectCollision(
   collided: GameObject
 ) {
   // Calc angle of collision (inverse the calc angle as Canvas y-axis is flipped - postive y points downward)
-  const radAngle = -Math.atan2(collided.y - subject.y, collided.x - subject.x);
+  const radAngle = -Math.atan2(
+    collided.position.y - subject.position.y,
+    collided.position.x - subject.position.x
+  );
   const degrees = ((radAngle * 180) / Math.PI + 360) % 360;
   console.log(subject.id + ": " + degrees, radAngle);
 
   // reposition subject Game Object outside of collided Game Object to ensure no overlap based on collision angle
-  subject.y = roundHundrethPercision(
-    collided.y + subject.radius * 2 * Math.sin(radAngle)
+  subject.position.y = roundHundrethPercision(
+    collided.position.y + subject.radius * 2 * Math.sin(radAngle)
   );
-  subject.x = roundHundrethPercision(
-    collided.x - subject.radius * 2 * Math.cos(radAngle)
+  subject.position.x = roundHundrethPercision(
+    collided.position.x - subject.radius * 2 * Math.cos(radAngle)
   );
 }

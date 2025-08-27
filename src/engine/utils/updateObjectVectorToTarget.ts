@@ -4,11 +4,11 @@ import settings from "../settings.json";
 
 export default function updateObjectVectorToTarget(obj: GameObject) {
   if (obj.target) {
-    const targetX = obj.target.x;
-    const targetY = obj.target.y;
+    const targetX = obj.target.position.x;
+    const targetY = obj.target.position.y;
 
-    let dx = targetX - obj.x;
-    let dy = targetY - obj.y;
+    let dx = targetX - obj.position.x;
+    let dy = targetY - obj.position.y;
 
     const dist = Math.round(Math.sqrt(dx ** 2 + dy ** 2));
     if (dist > 0) {
@@ -16,7 +16,10 @@ export default function updateObjectVectorToTarget(obj: GameObject) {
       dy = roundHundrethPercision(dy / dist);
     }
 
-    return [dx * settings["minion-speed"], dy * settings["minion-speed"]];
+    return {
+      x: dx * settings["minion-speed"],
+      y: dy * settings["minion-speed"],
+    };
   }
-  return [obj.x, obj.y];
+  return { x: obj.position.x, y: obj.position.y };
 }

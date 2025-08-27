@@ -18,11 +18,12 @@ export default class Minion extends GameObject {
   assignTeam(team: "red" | "blue") {
     this.team = team;
     if (team === "blue") {
-      this.x = settings["arena-width"] / 2;
-      this.y = settings["tower-radius"] + 50;
+      this.position.x = settings["arena-width"] / 2;
+      this.position.y = settings["tower-radius"] + 50;
     } else {
-      this.x = settings["arena-width"] / 2;
-      this.y = settings["arena-height"] - settings["tower-radius"] - 50;
+      this.position.x = settings["arena-width"] / 2;
+      this.position.y =
+        settings["arena-height"] - settings["tower-radius"] - 50;
     }
   }
 
@@ -72,7 +73,7 @@ export default class Minion extends GameObject {
 
   // apart of the avoidance algo, if any team Minion inComabt is in this cone, rotate velocity vector 90 degrees
   calcVisionCone() {
-    const vectorAngle = Math.atan2(this.dy, this.dx);
+    const vectorAngle = Math.atan2(this.velocity.y, this.velocity.x);
     this.visConeRight = vectorAngle - this.visionConeWidth / 2;
     this.visConeLeft = vectorAngle + this.visionConeWidth / 2;
   }
@@ -99,10 +100,10 @@ export default class Minion extends GameObject {
       if (!this.inCombat) {
         ctx.beginPath();
         ctx.fillStyle = "rgba(255, 255, 0, 0.5)";
-        ctx.moveTo(this.x, this.y);
+        ctx.moveTo(this.position.x, this.position.y);
         ctx.arc(
-          this.x,
-          this.y,
+          this.position.x,
+          this.position.y,
           this.argoRange,
           this.visConeRight,
           this.visConeLeft
@@ -114,20 +115,23 @@ export default class Minion extends GameObject {
       // draw Minion body
       ctx.beginPath();
       ctx.fillStyle = this.team;
-      ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+      ctx.arc(this.position.x, this.position.y, this.radius, 0, 2 * Math.PI);
       ctx.fill();
       ctx.closePath();
 
       // TEMP - Display hitpoints, ID, and Vector direction
       ctx.fillStyle = "black";
       ctx.font = "16px serif";
-      ctx.fillText(this.hitPoints.toString(), this.x, this.y);
-      ctx.fillText(this.id.toString(), this.x, this.y + 16);
+      ctx.fillText(this.hitPoints.toString(), this.position.x, this.position.y);
+      ctx.fillText(this.id.toString(), this.position.x, this.position.y + 16);
 
       ctx.beginPath();
       ctx.strokeStyle = "black";
-      ctx.moveTo(this.x, this.y);
-      ctx.lineTo(this.x + this.dx * 50, this.y + this.dy * 50);
+      ctx.moveTo(this.position.x, this.position.y);
+      ctx.lineTo(
+        this.position.x + this.velocity.x * 50,
+        this.position.y + this.velocity.y * 50
+      );
       ctx.stroke();
     }
   }
@@ -144,15 +148,19 @@ export default class Minion extends GameObject {
     if (ctx && typeof this.team === "string" && this.target) {
       // detect if Minion is colliding with it's target; if so, set directional vectors to 0, otherwise call updateObjectVectorToTarget(this)
       if (getDistanceBetweenObjects(this, this.target) <= this.radius * 2) {
-        this.dx = 0;
-        this.dy = 0;
+        this.velocity.x = 0;
+        this.velocity.y = 0;
         handleObjectCollision(this, this.target);
         this.inCombat = true;
       } else {
-        [this.dx, this.dy] = updateObjectVectorToTarget(this);
+        this.velocity = updateObjectVectorToTarget(this);
         this.inCombat = false;
-        this.x = roundHundrethPercision(this.x + this.dx);
-        this.y = roundHundrethPercision(this.y + this.dy);
+        this.position.x = roundHundrethPercision(
+          this.position.x + this.velocity.x
+        );
+        this.position.y = roundHundrethPercision(
+          this.position.y + this.velocity.y
+        );
         this.calcVisionCone();
       }
 

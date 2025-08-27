@@ -1,21 +1,15 @@
-import settings from "../settings.json";
-
 export default class GameObject {
   id: number = -1;
-  x: number = 0;
-  y: number = settings["arena-height"];
-  dx: number = 0;
-  dy: number = 0;
+  position = { x: 0, y: 0 };
+  velocity = { x: 0, y: 0 };
   radius: number = 0;
   target: GameObject | null = null;
   inCombat: boolean = false;
   hitPoints: number = 0;
 
   reset() {
-    this.x = 0;
-    this.y = settings["arena-height"];
-    this.dx = 0;
-    this.dy = 0;
+    this.position = { x: 0, y: 0 };
+    this.velocity = { x: 0, y: 0 };
     this.radius = 0;
     this.target = null;
     this.inCombat = false;

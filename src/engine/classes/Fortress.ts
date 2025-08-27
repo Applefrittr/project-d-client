@@ -11,11 +11,11 @@ export default class Fortress extends GameObject {
     this.hitPoints = settings["fortress-hitpoints"];
     this.team = team;
     if (team === "red") {
-      this.x = settings["arena-width"] / 2 + settings["tower-radius"];
-      this.y = settings["arena-height"] - settings["tower-radius"];
+      this.position.x = settings["arena-width"] / 2 + settings["tower-radius"];
+      this.position.y = settings["arena-height"] - settings["tower-radius"];
     } else {
-      this.x = settings["arena-width"] / 2 - settings["tower-radius"];
-      this.y = settings["tower-radius"];
+      this.position.x = settings["arena-width"] / 2 - settings["tower-radius"];
+      this.position.y = settings["tower-radius"];
     }
   }
 
@@ -23,13 +23,13 @@ export default class Fortress extends GameObject {
     if (this.team) {
       ctx.beginPath();
       ctx.fillStyle = this.team;
-      ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
+      ctx.arc(this.position.x, this.position.y, this.radius, 0, 2 * Math.PI);
       ctx.fill();
       ctx.closePath();
 
       ctx.fillStyle = "black";
       ctx.font = "16px serif";
-      ctx.fillText(this.hitPoints.toString(), this.x, this.y);
+      ctx.fillText(this.hitPoints.toString(), this.position.x, this.position.y);
     }
   }
 }
