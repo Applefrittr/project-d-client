@@ -4,6 +4,7 @@ import handleObjectCollision from "../utils/handleObjectCollision";
 import updateObjectVectorToTarget from "../utils/updateObjectVectorToTarget";
 import GameObject from "./GameObject";
 import getDistanceBetweenVectors from "../utils/getDistanceBetweenVectors";
+import vectorIntersectsObject from "../utils/vectorIntersectsObject";
 
 export default class Minion extends GameObject {
   team: string | null = null;
@@ -15,6 +16,7 @@ export default class Minion extends GameObject {
   visionConeWidth: number = Math.PI / 4;
   visConeRight: number = 0;
   visConeLeft: number = 0;
+  immediateCollisionThreat: GameObject | null = null;
 
   // assigns Minion to a team and positions on canvas -> function is invoked when spawnWave is called during main Game loop
   assignTeam(team: "red" | "blue") {
@@ -53,12 +55,16 @@ export default class Minion extends GameObject {
     } else {
       this.target = [...oppTeam][0];
     }
+    updateObjectVectorToTarget(this);
   }
 
   // Path adjustments to Minions target vector as it apporaches/collides with other objects on the same team
   adjustPathingToTarget(team: Set<GameObject>) {
     // return if Minion is currently in Combat -> we don't want to adjust a Minion's pathing if it is currently fighting an enemy
     if (this.inCombat) return;
+
+    let closestCollisionThreat: GameObject | null = null;
+    let closestCollisionThreatDist = Infinity;
 
     // loop through Set of team Game Objects
     // iterate over the team in REVERSE ORDER OF INSERTION to ensure new Team Objects dont push Minion into older team Objects
@@ -72,7 +78,40 @@ export default class Minion extends GameObject {
       // call handleTeamCollision if Minion collides another team Game Object
       if (dist < this.radius * 2) {
         handleObjectCollision(this, obj);
+        continue;
       }
+
+      // check to see if Minion's Look Ahead vectors intersect w/ curr Game Object
+      // if so, set the closest one to the Minions immediateCollisonTreat prop
+      if (vectorIntersectsObject(this.lookAhead, this.lookAhead2x, obj)) {
+        if (
+          !closestCollisionThreat ||
+          (dist < closestCollisionThreatDist && closestCollisionThreat)
+        ) {
+          closestCollisionThreat = obj;
+          closestCollisionThreatDist = dist;
+        }
+      }
+    }
+    this.immediateCollisionThreat = closestCollisionThreat;
+  }
+
+  collisionAvoidance() {
+    if (this.immediateCollisionThreat) {
+      const avoidX = this.immediateCollisionThreat.position.x;
+      const avoidY = this.immediateCollisionThreat.position.y;
+
+      let dx = this.lookAhead.x - avoidX;
+      let dy = this.lookAhead.y - avoidY;
+
+      const dist = Math.sqrt(dx ** 2 + dy ** 2);
+      if (dist > 0) {
+        dx = roundHundrethPercision(dx / dist);
+        dy = roundHundrethPercision(dy / dist);
+      }
+
+      this.velocity.x = this.velocity.x + dx * settings["minion-speed"];
+      //this.velocity.y = this.velocity.y + dy * settings["minion-speed"];
     }
   }
 
@@ -102,20 +141,20 @@ export default class Minion extends GameObject {
   draw(ctx: CanvasRenderingContext2D) {
     if (typeof this.team === "string") {
       // TEMP - draw vision Cone
-      if (!this.inCombat) {
-        ctx.beginPath();
-        ctx.fillStyle = "rgba(255, 255, 0, 0.5)";
-        ctx.moveTo(this.position.x, this.position.y);
-        ctx.arc(
-          this.position.x,
-          this.position.y,
-          this.argoRange,
-          this.visConeRight,
-          this.visConeLeft
-        );
-        ctx.fill();
-        ctx.closePath;
-      }
+      // if (!this.inCombat) {
+      //   ctx.beginPath();
+      //   ctx.fillStyle = "rgba(255, 255, 0, 0.5)";
+      //   ctx.moveTo(this.position.x, this.position.y);
+      //   ctx.arc(
+      //     this.position.x,
+      //     this.position.y,
+      //     this.argoRange,
+      //     this.visConeRight,
+      //     this.visConeLeft
+      //   );
+      //   ctx.fill();
+      //   ctx.closePath;
+      // }
 
       // draw Minion body
       ctx.beginPath();
@@ -133,10 +172,13 @@ export default class Minion extends GameObject {
       ctx.beginPath();
       ctx.strokeStyle = "black";
       ctx.moveTo(this.position.x, this.position.y);
-      ctx.lineTo(
-        this.position.x + this.velocity.x * 50,
-        this.position.y + this.velocity.y * 50
-      );
+      ctx.lineTo(this.lookAhead.x, this.lookAhead.y);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.strokeStyle = "orange";
+      ctx.moveTo(this.position.x, this.position.y);
+      ctx.lineTo(this.lookAhead2x.x, this.lookAhead2x.y);
       ctx.stroke();
     }
   }
@@ -161,14 +203,31 @@ export default class Minion extends GameObject {
         handleObjectCollision(this, this.target);
         this.inCombat = true;
       } else {
-        this.velocity = updateObjectVectorToTarget(this);
         this.inCombat = false;
+
+        if (this.immediateCollisionThreat) {
+          this.collisionAvoidance();
+        }
+        // else {
+        //   updateObjectVectorToTarget(this);
+        // }
+
         this.position.x = roundHundrethPercision(
           this.position.x + this.velocity.x
         );
         this.position.y = roundHundrethPercision(
           this.position.y + this.velocity.y
         );
+        this.lookAhead.x =
+          this.position.x +
+          this.velocity.x * (settings["minion-look-ahead-max"] / 2);
+        this.lookAhead.y =
+          this.position.y +
+          this.velocity.y * (settings["minion-look-ahead-max"] / 2);
+        this.lookAhead2x.x =
+          this.position.x + this.velocity.x * settings["minion-look-ahead-max"];
+        this.lookAhead2x.y =
+          this.position.y + this.velocity.y * settings["minion-look-ahead-max"];
         this.calcVisionCone();
       }
 

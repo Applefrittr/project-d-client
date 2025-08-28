@@ -2,7 +2,7 @@ import GameObject from "../classes/GameObject";
 import roundHundrethPercision from "./roundHundrethPercision";
 import settings from "../settings.json";
 
-export default function updateObjectVectorToTarget(obj: GameObject) {
+export default function updateVelocityVectorToTarget(obj: GameObject) {
   if (obj.target) {
     const targetX = obj.target.position.x;
     const targetY = obj.target.position.y;
@@ -16,10 +16,7 @@ export default function updateObjectVectorToTarget(obj: GameObject) {
       dy = roundHundrethPercision(dy / dist);
     }
 
-    return {
-      x: dx * settings["minion-speed"],
-      y: dy * settings["minion-speed"],
-    };
+    obj.velocity.x = dx * settings["minion-speed"];
+    obj.velocity.y = dy * settings["minion-speed"];
   }
-  return { x: obj.position.x, y: obj.position.y };
 }

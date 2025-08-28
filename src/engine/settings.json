@@ -9,6 +9,7 @@
   "minion-attack-cooldown": 2000,
   "minion-speed": 2,
   "minion-radius": 25,
+  "minion-look-ahead-max": 50,
   "tower-radius": 50,
   "fortress-hitpoints": 500
 }
