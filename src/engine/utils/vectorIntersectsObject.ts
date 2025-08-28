@@ -1,10 +1,6 @@
 import type GameObject from "../classes/GameObject";
+import Vector from "../classes/Vector";
 import getDistanceBetweenVectors from "./getDistanceBetweenVectors";
-
-type Vector = {
-  x: number;
-  y: number;
-};
 
 export default function vectorIntersectsObject(
   vector1: Vector,

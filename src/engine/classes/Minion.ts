@@ -3,14 +3,15 @@ import roundHundrethPercision from "../utils/roundHundrethPercision";
 import handleObjectCollision from "../utils/handleObjectCollision";
 import updateObjectVectorToTarget from "../utils/updateObjectVectorToTarget";
 import GameObject from "./GameObject";
+import Vector from "./Vector";
 import getDistanceBetweenVectors from "../utils/getDistanceBetweenVectors";
 import vectorIntersectsObject from "../utils/vectorIntersectsObject";
 
 export default class Minion extends GameObject {
   team: string | null = null;
   argoRange = 200;
-  lookAhead = { x: 0, y: 0 };
-  lookAhead2x = { x: 0, y: 0 };
+  lookAhead = new Vector(0, 0);
+  lookAhead2x = new Vector(0, 0);
   radius = settings["minion-radius"];
   prevAttackTime: number = 0;
   visionConeWidth: number = Math.PI / 4;

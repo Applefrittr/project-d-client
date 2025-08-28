@@ -1,3 +1,5 @@
+import roundHundrethPercision from "../utils/roundHundrethPercision";
+
 export default class Vector {
   x: number = 0;
   y: number = 0;
@@ -9,7 +11,8 @@ export default class Vector {
 
   normalize() {
     const magnitude = Math.sqrt(this.x ** 2 + this.y ** 2);
-    this.x /= magnitude;
-    this.y /= magnitude;
+    this.x = roundHundrethPercision(this.x / magnitude);
+    this.y = roundHundrethPercision(this.y / magnitude);
+    return this;
   }
 }

@@ -1,9 +1,8 @@
 import roundHundrethPercision from "./roundHundrethPercision";
-
-type Vector = { x: number; y: number };
+import Vector from "../classes/Vector";
 
 // Use Pythagorean Theorem to find distance between 2 Vectors
-export default function getDistanceBetweenObjects(
+export default function getDistanceBetweenVectors(
   vector1: Vector,
   vector2: Vector
 ): number {

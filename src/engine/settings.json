@@ -4,7 +4,7 @@
   "fps": 60,
   "time-between-waves": 20000,
   "time-between-minions": 1000,
-  "minions-per-wave": 3,
+  "minions-per-wave": 1,
   "minion-hp": 100,
   "minion-attack-cooldown": 2000,
   "minion-speed": 2,
