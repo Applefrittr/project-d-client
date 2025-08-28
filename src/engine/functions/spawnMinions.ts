@@ -1,7 +1,7 @@
 import type GameObject from "../classes/GameObject";
 import type Minion from "../classes/Minion";
 import settings from "../settings.json";
-import updateVelocityVectorToTarget from "../utils/updateObjectVectorToTarget";
+import setVelocityVector from "../utils/setVelocityVector";
 
 export default function spawnMinions(
   pool: Minion[],
@@ -15,7 +15,7 @@ export default function spawnMinions(
       pool[i].hitPoints = settings["minion-hp"];
       redTeam.add(pool[i]);
       pool[i].target = [...blueTeam][0];
-      updateVelocityVectorToTarget(pool[i]);
+      setVelocityVector(pool[i]);
       break;
     }
   }
@@ -27,7 +27,7 @@ export default function spawnMinions(
       pool[j].hitPoints = settings["minion-hp"];
       blueTeam.add(pool[j]);
       pool[j].target = [...redTeam][0];
-      updateVelocityVectorToTarget(pool[j]);
+      setVelocityVector(pool[j]);
       break;
     }
   }

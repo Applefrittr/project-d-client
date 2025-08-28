@@ -1,7 +1,7 @@
 import settings from "../settings.json";
 import roundHundrethPercision from "../utils/roundHundrethPercision";
 import handleObjectCollision from "../utils/handleObjectCollision";
-import updateObjectVectorToTarget from "../utils/updateObjectVectorToTarget";
+import vectorSteerToTarget from "../utils/vectorSteerToTarget";
 import GameObject from "./GameObject";
 import Vector from "./Vector";
 import getDistanceBetweenVectors from "../utils/getDistanceBetweenVectors";
@@ -9,7 +9,7 @@ import vectorIntersectsObject from "../utils/vectorIntersectsObject";
 
 export default class Minion extends GameObject {
   team: string | null = null;
-  argoRange = 200;
+  argoRange = 500;
   lookAhead = new Vector(0, 0);
   lookAhead2x = new Vector(0, 0);
   radius = settings["minion-radius"];
@@ -23,12 +23,15 @@ export default class Minion extends GameObject {
   assignTeam(team: "red" | "blue") {
     this.team = team;
     if (team === "blue") {
-      this.position.x = settings["arena-width"] / 2;
-      this.position.y = settings["tower-radius"] + 50;
+      this.position.update(
+        settings["arena-width"] / 2,
+        settings["tower-radius"] + 50
+      );
     } else {
-      this.position.x = settings["arena-width"] / 2;
-      this.position.y =
-        settings["arena-height"] - settings["tower-radius"] - 50;
+      this.position.update(
+        settings["arena-width"] / 2,
+        settings["arena-height"] - settings["tower-radius"] - 50
+      );
     }
   }
 
@@ -56,7 +59,6 @@ export default class Minion extends GameObject {
     } else {
       this.target = [...oppTeam][0];
     }
-    updateObjectVectorToTarget(this);
   }
 
   // Path adjustments to Minions target vector as it apporaches/collides with other objects on the same team
@@ -112,7 +114,7 @@ export default class Minion extends GameObject {
       }
 
       this.velocity.x = this.velocity.x + dx * settings["minion-speed"];
-      //this.velocity.y = this.velocity.y + dy * settings["minion-speed"];
+      this.velocity.y = this.velocity.y + dy * settings["minion-speed"];
     }
   }
 
@@ -169,6 +171,11 @@ export default class Minion extends GameObject {
       ctx.font = "16px serif";
       ctx.fillText(this.hitPoints.toString(), this.position.x, this.position.y);
       ctx.fillText(this.id.toString(), this.position.x, this.position.y + 16);
+      ctx.fillText(
+        JSON.stringify(this.velocity),
+        this.position.x,
+        this.position.y + 32
+      );
 
       ctx.beginPath();
       ctx.strokeStyle = "black";
@@ -194,48 +201,42 @@ export default class Minion extends GameObject {
 
     // update direction vectors, position coordinates and draw to canvas
     if (ctx && typeof this.team === "string" && this.target) {
-      // detect if Minion is colliding with it's target; if so, set directional vectors to 0, otherwise call updateObjectVectorToTarget(this)
+      // detect if Minion is colliding with it's target; if so, set directional vectors to 0, otherwise call vectorSteerToTarget(this)
       if (
         getDistanceBetweenVectors(this.position, this.target.position) <=
         this.radius * 2
       ) {
-        this.velocity.x = 0;
-        this.velocity.y = 0;
+        this.velocity.update(0, 0);
         handleObjectCollision(this, this.target);
         this.inCombat = true;
       } else {
         this.inCombat = false;
+        vectorSteerToTarget(this);
 
-        if (this.immediateCollisionThreat) {
-          this.collisionAvoidance();
-        }
-        // else {
-        //   updateObjectVectorToTarget(this);
+        // if (this.immediateCollisionThreat) {
+        //   this.collisionAvoidance();
         // }
 
-        this.position.x = roundHundrethPercision(
-          this.position.x + this.velocity.x
+        this.position.update(
+          roundHundrethPercision(this.position.x + this.velocity.x),
+          roundHundrethPercision(this.position.y + this.velocity.y)
         );
-        this.position.y = roundHundrethPercision(
-          this.position.y + this.velocity.y
-        );
-        this.lookAhead.x =
+
+        this.lookAhead.update(
           this.position.x +
-          this.velocity.x * (settings["minion-look-ahead-max"] / 2);
-        this.lookAhead.y =
+            this.velocity.x * (settings["minion-look-ahead-max"] / 2),
           this.position.y +
-          this.velocity.y * (settings["minion-look-ahead-max"] / 2);
-        this.lookAhead2x.x =
-          this.position.x + this.velocity.x * settings["minion-look-ahead-max"];
-        this.lookAhead2x.y =
-          this.position.y + this.velocity.y * settings["minion-look-ahead-max"];
-        this.calcVisionCone();
+            this.velocity.y * (settings["minion-look-ahead-max"] / 2)
+        );
+
+        this.lookAhead2x.update(
+          this.position.x + this.velocity.x * settings["minion-look-ahead-max"],
+          this.position.y + this.velocity.y * settings["minion-look-ahead-max"]
+        );
+        //this.calcVisionCone();
       }
 
       this.draw(ctx);
     }
-
-    // testing target detection
-    //if (this.target instanceof Minion) this.team = "green";
   }
 }

@@ -1,8 +1,8 @@
-import GameObject from "../classes/GameObject";
+import type GameObject from "../classes/GameObject";
 import settings from "../settings.json";
 import Vector from "../classes/Vector";
 
-export default function updateVelocityVectorToTarget(obj: GameObject) {
+export default function setVelocityVector(obj: GameObject) {
   if (obj.target) {
     const targetX = obj.target.position.x;
     const targetY = obj.target.position.y;
@@ -10,9 +10,10 @@ export default function updateVelocityVectorToTarget(obj: GameObject) {
     const newVector = new Vector(
       targetX - obj.position.x,
       targetY - obj.position.y
-    ).normalize();
+    )
+      .normalize()
+      .scaler(settings["minion-speed"]);
 
-    obj.velocity.x = newVector.x * settings["minion-speed"];
-    obj.velocity.y = newVector.y * settings["minion-speed"];
+    obj.velocity.update(newVector.x, newVector.y);
   }
 }

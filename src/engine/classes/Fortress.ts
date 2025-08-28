@@ -11,11 +11,15 @@ export default class Fortress extends GameObject {
     this.hitPoints = settings["fortress-hitpoints"];
     this.team = team;
     if (team === "red") {
-      this.position.x = settings["arena-width"] / 2 + settings["tower-radius"];
-      this.position.y = settings["arena-height"] - settings["tower-radius"];
+      this.position.update(
+        settings["arena-width"] / 2 + settings["tower-radius"],
+        settings["arena-height"] - settings["tower-radius"]
+      );
     } else {
-      this.position.x = settings["arena-width"] / 2 - settings["tower-radius"];
-      this.position.y = settings["tower-radius"];
+      this.position.update(
+        settings["arena-width"] / 2 - settings["tower-radius"],
+        settings["tower-radius"]
+      );
     }
   }
 

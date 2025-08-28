@@ -11,14 +11,16 @@ export default function handleObjectCollision(
     collided.position.y - subject.position.y,
     collided.position.x - subject.position.x
   );
-  const degrees = ((radAngle * 180) / Math.PI + 360) % 360;
-  console.log(subject.id + ": " + degrees, radAngle);
+  //const degrees = ((radAngle * 180) / Math.PI + 360) % 360;
+  //console.log(subject.id + ": " + degrees, radAngle);
 
   // reposition subject Game Object outside of collided Game Object to ensure no overlap based on collision angle
-  subject.position.y = roundHundrethPercision(
-    collided.position.y + subject.radius * 2 * Math.sin(radAngle)
-  );
-  subject.position.x = roundHundrethPercision(
-    collided.position.x - subject.radius * 2 * Math.cos(radAngle)
+  subject.position.update(
+    roundHundrethPercision(
+      collided.position.x - subject.radius * 2 * Math.cos(radAngle)
+    ),
+    roundHundrethPercision(
+      collided.position.y + subject.radius * 2 * Math.sin(radAngle)
+    )
   );
 }

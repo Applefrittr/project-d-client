@@ -15,4 +15,15 @@ export default class Vector {
     this.y = roundHundrethPercision(this.y / magnitude);
     return this;
   }
+
+  scaler(n: number) {
+    this.x *= n;
+    this.y *= n;
+    return this;
+  }
+
+  update(x: number, y: number) {
+    this.x = x;
+    this.y = y;
+  }
 }
