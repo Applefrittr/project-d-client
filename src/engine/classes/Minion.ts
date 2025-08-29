@@ -19,7 +19,7 @@ export default class Minion extends GameObject {
   visConeLeft: number = 0;
   immediateCollisionThreat: GameObject | null = null;
 
-  // assigns Minion to a team and positions on canvas -> function is invoked when spawnWave is called during main Game loop
+  // assigns Minion to a team and positions Vectors on canvas -> function is invoked when spawnWave is called during main Game loop
   assignTeam(team: "red" | "blue") {
     this.team = team;
     if (team === "blue") {
@@ -86,7 +86,14 @@ export default class Minion extends GameObject {
 
       // check to see if Minion's Look Ahead vectors intersect w/ curr Game Object
       // if so, set the closest one to the Minions immediateCollisonTreat prop
-      if (vectorIntersectsObject(this.lookAhead, this.lookAhead2x, obj)) {
+      if (
+        vectorIntersectsObject(
+          obj,
+          this.lookAhead,
+          this.lookAhead2x,
+          this.position
+        )
+      ) {
         if (
           !closestCollisionThreat ||
           (dist < closestCollisionThreatDist && closestCollisionThreat)
@@ -99,6 +106,9 @@ export default class Minion extends GameObject {
     this.immediateCollisionThreat = closestCollisionThreat;
   }
 
+  // Minion avoids colliding with another team GameObject that is closest.  The avoidance vector is added to Minion's current vector
+  // to attempt to move Minion around collsion threat.  Subtly changes vector based on a scaler as to provide a smooth
+  // direction change
   collisionAvoidance() {
     if (this.immediateCollisionThreat) {
       const avoidX = this.immediateCollisionThreat.position.x;
@@ -109,7 +119,7 @@ export default class Minion extends GameObject {
         this.lookAhead.y - avoidY
       )
         .normalize()
-        .scaler(0.25);
+        .scaler(settings["avoidance-force"]);
 
       this.velocity.update(
         roundHundrethPercision(this.velocity.x + avoidanceVector.x),
@@ -118,13 +128,7 @@ export default class Minion extends GameObject {
     }
   }
 
-  // apart of the avoidance algo, if any team Minion inComabt is in this cone, rotate velocity vector 90 degrees
-  calcVisionCone() {
-    const vectorAngle = Math.atan2(this.velocity.y, this.velocity.x);
-    this.visConeRight = vectorAngle - this.visionConeWidth / 2;
-    this.visConeLeft = vectorAngle + this.visionConeWidth / 2;
-  }
-
+  // attack logic, subtract hps from target based on interval while in combat (collided with target)
   attack(currMs: number) {
     if (this.target) {
       if (currMs - this.prevAttackTime < settings["minion-attack-cooldown"])
@@ -134,6 +138,7 @@ export default class Minion extends GameObject {
     }
   }
 
+  // reset Minion back to Game Minion pool once hitpoints reach zero
   destroy(team: Set<GameObject>) {
     team.delete(this);
     this.team = null;
@@ -143,22 +148,6 @@ export default class Minion extends GameObject {
 
   draw(ctx: CanvasRenderingContext2D) {
     if (typeof this.team === "string") {
-      // TEMP - draw vision Cone
-      // if (!this.inCombat) {
-      //   ctx.beginPath();
-      //   ctx.fillStyle = "rgba(255, 255, 0, 0.5)";
-      //   ctx.moveTo(this.position.x, this.position.y);
-      //   ctx.arc(
-      //     this.position.x,
-      //     this.position.y,
-      //     this.argoRange,
-      //     this.visConeRight,
-      //     this.visConeLeft
-      //   );
-      //   ctx.fill();
-      //   ctx.closePath;
-      // }
-
       // draw Minion body
       ctx.beginPath();
       ctx.fillStyle = this.team;
@@ -170,35 +159,29 @@ export default class Minion extends GameObject {
       ctx.fillStyle = "black";
       ctx.font = "16px serif";
       ctx.fillText(this.hitPoints.toString(), this.position.x, this.position.y);
-      ctx.fillText(this.id.toString(), this.position.x, this.position.y + 16);
       ctx.fillText(
         JSON.stringify(this.velocity),
         this.position.x,
-        this.position.y + 32
+        this.position.y + 16
       );
 
       ctx.beginPath();
       ctx.strokeStyle = "black";
-      ctx.moveTo(this.position.x, this.position.y);
-      ctx.lineTo(this.lookAhead.x, this.lookAhead.y);
+      // ctx.moveTo(this.position.x, this.position.y);
+      // ctx.lineTo(this.lookAhead.x, this.lookAhead.y);
+      ctx.arc(this.lookAhead.x, this.lookAhead.y, 5, 0, 2 * Math.PI);
       ctx.stroke();
 
       ctx.beginPath();
       ctx.strokeStyle = "orange";
-      ctx.moveTo(this.position.x, this.position.y);
-      ctx.lineTo(this.lookAhead2x.x, this.lookAhead2x.y);
+      // ctx.moveTo(this.position.x, this.position.y);
+      // ctx.lineTo(this.lookAhead2x.x, this.lookAhead2x.y);
+      ctx.arc(this.lookAhead2x.x, this.lookAhead2x.y, 5, 0, 2 * Math.PI);
       ctx.stroke();
     }
   }
 
   update(ctx: CanvasRenderingContext2D | null) {
-    // check bounding of Minion, if out of bounds, reset to default settings
-    // TEMP - needed only during dev
-    // if (this.x < 0 || this.x > settings["arena-width"]) {
-    //   this.reset();
-    //   return;
-    // }
-
     // update direction vectors, position coordinates and draw to canvas
     if (ctx && typeof this.team === "string" && this.target) {
       // detect if Minion is colliding with it's target; if so, set directional vectors to 0, otherwise call vectorSteerToTarget(this)
@@ -209,10 +192,14 @@ export default class Minion extends GameObject {
         this.velocity.update(0, 0);
         handleObjectCollision(this, this.target);
         this.inCombat = true;
-      } else {
+      }
+      // if not collided, update position by current velocity, accounting for steering and avoidance vectors
+      else {
         this.inCombat = false;
+        // steer vector towards current Target
         vectorSteerToTarget(this);
 
+        // avoid immediate collison threats -> team GameObjects
         if (this.immediateCollisionThreat) {
           this.collisionAvoidance();
         }
@@ -222,6 +209,7 @@ export default class Minion extends GameObject {
           roundHundrethPercision(this.position.y + this.velocity.y)
         );
 
+        // update lookahead vectors -> used to determine collision avoidance
         this.lookAhead.update(
           this.position.x +
             this.velocity.x * (settings["minion-look-ahead-max"] / 2),
@@ -233,7 +221,6 @@ export default class Minion extends GameObject {
           this.position.x + this.velocity.x * settings["minion-look-ahead-max"],
           this.position.y + this.velocity.y * settings["minion-look-ahead-max"]
         );
-        //this.calcVisionCone();
       }
 
       this.draw(ctx);

@@ -12,5 +12,6 @@
   "minion-look-ahead-max": 50,
   "tower-radius": 50,
   "fortress-hitpoints": 500,
-  "steering-force": 0.1
+  "steering-force": 0.1,
+  "avoidance-force": 0.3
 }

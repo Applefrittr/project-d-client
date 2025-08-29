@@ -9,6 +9,10 @@ export default class Vector {
     this.y = y;
   }
 
+  getMagnitude() {
+    return Math.sqrt(this.x ** 2 + this.y ** 2);
+  }
+
   normalize() {
     const magnitude = Math.sqrt(this.x ** 2 + this.y ** 2);
     this.x = roundHundrethPercision(this.x / magnitude);

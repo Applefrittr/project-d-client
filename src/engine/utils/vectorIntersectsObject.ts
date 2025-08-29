@@ -3,12 +3,12 @@ import Vector from "../classes/Vector";
 import getDistanceBetweenVectors from "./getDistanceBetweenVectors";
 
 export default function vectorIntersectsObject(
-  vector1: Vector,
-  vector2: Vector,
-  obj: GameObject
+  obj: GameObject,
+  ...vectors: Vector[]
 ) {
-  const dist1 = getDistanceBetweenVectors(vector1, obj.position);
-  const dist2 = getDistanceBetweenVectors(vector2, obj.position);
-
-  return dist1 <= obj.radius * 2 || dist2 <= obj.radius * 2;
+  for (const vector of vectors) {
+    const dist = getDistanceBetweenVectors(vector, obj.position);
+    if (dist <= obj.radius * 2) return true;
+  }
+  return false;
 }
