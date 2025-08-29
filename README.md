@@ -2,6 +2,8 @@
 
 Auto battler multiplayer game with player created decks to turn the tide of battle in their favor.
 
+**LIVE TESTING**: https://applefrittr.github.io/project-d-client/
+
 **Features**:
 
 - Auto battler in the same vein as in League of Legends ARAM/Summoners Rift where waves of AI controlled minions battle/tug of war for control of arena - 1-2 combat lanes.
