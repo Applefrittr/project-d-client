@@ -104,17 +104,17 @@ export default class Minion extends GameObject {
       const avoidX = this.immediateCollisionThreat.position.x;
       const avoidY = this.immediateCollisionThreat.position.y;
 
-      let dx = this.lookAhead.x - avoidX;
-      let dy = this.lookAhead.y - avoidY;
+      const avoidanceVector = new Vector(
+        this.lookAhead.x - avoidX,
+        this.lookAhead.y - avoidY
+      )
+        .normalize()
+        .scaler(0.25);
 
-      const dist = Math.sqrt(dx ** 2 + dy ** 2);
-      if (dist > 0) {
-        dx = roundHundrethPercision(dx / dist);
-        dy = roundHundrethPercision(dy / dist);
-      }
-
-      this.velocity.x = this.velocity.x + dx * settings["minion-speed"];
-      this.velocity.y = this.velocity.y + dy * settings["minion-speed"];
+      this.velocity.update(
+        roundHundrethPercision(this.velocity.x + avoidanceVector.x),
+        roundHundrethPercision(this.velocity.y + avoidanceVector.y)
+      );
     }
   }
 
@@ -213,9 +213,9 @@ export default class Minion extends GameObject {
         this.inCombat = false;
         vectorSteerToTarget(this);
 
-        // if (this.immediateCollisionThreat) {
-        //   this.collisionAvoidance();
-        // }
+        if (this.immediateCollisionThreat) {
+          this.collisionAvoidance();
+        }
 
         this.position.update(
           roundHundrethPercision(this.position.x + this.velocity.x),
