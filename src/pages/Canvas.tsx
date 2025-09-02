@@ -28,8 +28,13 @@ function Canvas() {
     // Initialize socket connection
     socket.connect();
 
+    socket.on("update", (state) => {
+      console.log(state);
+    });
+
     return () => {
       game.close();
+      socket.off("update");
       socket.close();
     };
   }, []);
