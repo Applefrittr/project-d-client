@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef } from "react";
 import Game from "../engine/Game";
 import settings from "../engine/settings.json";
 import MouseScrollOverlay from "../components/MouseScrollOverlay";
+import socket from "../server/socketConnection";
 
 function Canvas() {
   const game = useMemo(
@@ -15,6 +16,7 @@ function Canvas() {
   }
 
   useEffect(() => {
+    // Initialize game loop
     if (canvasRef.current) {
       const ctx = canvasRef.current.getContext("2d");
       game.setCanvasContext(ctx);
@@ -23,8 +25,17 @@ function Canvas() {
       game.loop(performance.now());
     }
 
+    // Initialize socket connection
+    socket.connect();
+
+    socket.on("update", (state) => {
+      console.log(state);
+    });
+
     return () => {
       game.close();
+      socket.off("update");
+      socket.close();
     };
   }, []);
 
