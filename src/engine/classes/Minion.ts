@@ -6,17 +6,14 @@ import GameObject from "./GameObject";
 import Vector from "./Vector";
 import getDistanceBetweenVectors from "../utils/getDistanceBetweenVectors";
 import vectorIntersectsObject from "../utils/vectorIntersectsObject";
+import { type TeamObject } from "../Game";
 
 export default class Minion extends GameObject {
-  team: string | null = null;
   argoRange = 500;
   lookAhead = new Vector(0, 0);
   lookAhead2x = new Vector(0, 0);
   radius = settings["minion-radius"];
   prevAttackTime: number = 0;
-  visionConeWidth: number = Math.PI / 4;
-  visConeRight: number = 0;
-  visConeLeft: number = 0;
   immediateCollisionThreat: GameObject | null = null;
 
   // assigns Minion to a team and positions Vectors on canvas -> function is invoked when spawnWave is called during main Game loop
@@ -37,12 +34,12 @@ export default class Minion extends GameObject {
 
   // iterates through the Set of opposing team GameObjects to detect potential targets and assigns the closest one to the Minion as the target
   // skips if Minion is inCombat
-  detectTarget(oppTeam: Set<GameObject>) {
+  detectTarget(oppTeam: TeamObject) {
     if (this.inCombat) return;
     let currTarget: GameObject | null = null,
       targetDistance: number | null = Infinity;
 
-    for (const minion of oppTeam) {
+    for (const minion of Object.values(oppTeam)) {
       const currDistance = getDistanceBetweenVectors(
         this.position,
         minion.position
@@ -57,12 +54,12 @@ export default class Minion extends GameObject {
     if (currTarget) {
       this.target = currTarget;
     } else {
-      this.target = [...oppTeam][0];
+      this.target = oppTeam["-1"];
     }
   }
 
   // Path adjustments to Minions target vector as it apporaches/collides with other objects on the same team
-  adjustPathingToTarget(team: Set<GameObject>) {
+  adjustPathingToTarget(team: TeamObject) {
     // return if Minion is currently in Combat -> we don't want to adjust a Minion's pathing if it is currently fighting an enemy
     if (this.inCombat) return;
 
@@ -71,7 +68,7 @@ export default class Minion extends GameObject {
 
     // loop through Set of team Game Objects
     // iterate over the team in REVERSE ORDER OF INSERTION to ensure new Team Objects dont push Minion into older team Objects
-    for (const obj of Array.from(team).reverse()) {
+    for (const obj of Array.from(Object.values(team)).reverse()) {
       // skip collision detection for the Minion against itself
       if (this.id === obj.id) continue;
 
@@ -103,6 +100,7 @@ export default class Minion extends GameObject {
         }
       }
     }
+
     this.immediateCollisionThreat = closestCollisionThreat;
   }
 
@@ -139,8 +137,8 @@ export default class Minion extends GameObject {
   }
 
   // reset Minion back to Game Minion pool once hitpoints reach zero
-  destroy(team: Set<GameObject>) {
-    team.delete(this);
+  destroy(team: TeamObject) {
+    delete team[this.id];
     this.team = null;
     super.reset();
     return;

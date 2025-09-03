@@ -6,23 +6,29 @@ import Fortress from "./classes/Fortress";
 import GameObject from "./classes/GameObject";
 import spawnMinions from "./functions/spawnMinions";
 
+export type TeamObject = {
+  [id: number]: GameObject;
+};
+
 export default class Game {
+  prevWaveTime: number = 0;
+  prevMinionSpawn: number = 0;
+  minionsSpawnedCurrWave: number = 0;
+  minionPool: Minion[] = [];
+  blueTeam: TeamObject = {};
+  redTeam: TeamObject = {};
+  isPaused: boolean = false;
+  isWaveSpawning: boolean = true;
+  startTime: number = 0;
+  pausedTime: number = 0;
+
+  // Client specific properties
   ctx: CanvasRenderingContext2D | null = null;
   canvasWidth: number;
   canvasHeight: number;
   frame: number = 0;
   fpsController = new FPSController();
-  prevWaveTime: number = 0;
-  prevMinionSpawn: number = 0;
-  minionsSpawnedCurrWave: number = 0;
-  minionPool: Minion[] = [];
   renderRate = 1000 / settings["fps"];
-  blueTeam: Set<GameObject> = new Set();
-  redTeam: Set<GameObject> = new Set();
-  isPaused: boolean = false;
-  isWaveSpawning: boolean = true;
-  startTime: number = 0;
-  pausedTime: number = 0;
 
   constructor(width: number, height: number) {
     this.canvasWidth = width;
@@ -35,12 +41,11 @@ export default class Game {
 
   // intialize creates intial gamestate and creates object pools
   initialize() {
-    this.blueTeam.add(new Fortress("blue"));
-    this.redTeam.add(new Fortress("red"));
+    this.blueTeam["-1"] = new Fortress("blue");
+    this.redTeam["-1"] = new Fortress("red");
     this.minionPool = initializeMinionPool(this.minionPool, 100);
 
     this.prevWaveTime = performance.now();
-    //spawnWave(this.minionPool, this.redTeam, this.blueTeam);
   }
 
   // render function loops through all game assets (class instances) and calls their respective update()
@@ -73,8 +78,8 @@ export default class Game {
         minion.update(this.ctx);
 
         // temp just to render Fortresses
-        [...this.redTeam][0].draw(this.ctx);
-        [...this.blueTeam][0].draw(this.ctx);
+        this.redTeam["-1"].draw(this.ctx);
+        this.blueTeam["-1"].draw(this.ctx);
       });
     }
   }
@@ -82,8 +87,8 @@ export default class Game {
   close() {
     window.cancelAnimationFrame(this.frame);
     this.minionPool = [];
-    this.redTeam = new Set();
-    this.blueTeam = new Set();
+    this.redTeam = {};
+    this.blueTeam = {};
   }
 
   pause() {
