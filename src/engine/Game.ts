@@ -118,7 +118,6 @@ export default class Game {
     // Current in game time -> used for gamestate checks and rendering
     // Ensures game continues at a consistance pace, even when game is paused/resumed
     const gameTime = msNow - this.startTime - this.pausedTime;
-    console.log("gameTime: ", gameTime);
 
     this.frame = window.requestAnimationFrame(this.loop);
 
