@@ -2,9 +2,10 @@ import { useEffect, useMemo, useRef } from "react";
 import Game from "../engine/Game";
 import settings from "../engine/settings.json";
 import MouseScrollOverlay from "../components/MouseScrollOverlay";
-import socket from "../server/socketConnection";
+import Canvas from "../components/Canvas";
+//import socket from "../server/socketConnection";
 
-function Canvas() {
+function SinglePlayerGame() {
   const game = useMemo(
     () => new Game(settings["arena-width"], settings["arena-height"]),
     []
@@ -25,17 +26,8 @@ function Canvas() {
       game.loop(performance.now());
     }
 
-    // Initialize socket connection
-    socket.connect();
-
-    socket.on("update", (state) => {
-      console.log(state);
-    });
-
     return () => {
       game.close();
-      socket.off("update");
-      socket.close();
     };
   }, []);
 
@@ -49,14 +41,10 @@ function Canvas() {
         >
           Pause
         </button>
-        <canvas
-          height={settings["arena-height"]}
-          width={settings["arena-width"]}
-          ref={canvasRef}
-        ></canvas>
+        <Canvas canvasRef={canvasRef} />
       </section>
     </>
   );
 }
 
-export default Canvas;
+export default SinglePlayerGame;
