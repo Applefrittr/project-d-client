@@ -1,7 +1,7 @@
 import settings from "../settings.json";
 
 export default class FPSController {
-  msPrev: number = performance.now();
+  msPrev: number = 0;
   fps: number = settings["fps"];
   msPerFrame: number = 1000 / this.fps;
 
@@ -9,6 +9,9 @@ export default class FPSController {
 
   renderFrame(msNow: number) {
     const msPassed = msNow - this.msPrev;
+    console.log("msPrev: ", this.msPrev);
+    console.log("msPassed: ", msPassed);
+    console.log("msPerFrame: ", this.msPerFrame);
 
     if (msPassed < this.msPerFrame) return false;
 

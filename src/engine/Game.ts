@@ -41,11 +41,13 @@ export default class Game {
 
   // intialize creates intial gamestate and creates object pools
   initialize() {
+    console.log("initializing...");
     this.blueTeam["-1"] = new Fortress("blue");
     this.redTeam["-1"] = new Fortress("red");
     this.minionPool = initializeMinionPool(this.minionPool, 100);
 
     this.prevWaveTime = performance.now();
+    console.log("done");
   }
 
   // render function loops through all game assets (class instances) and calls their respective update()
@@ -89,6 +91,8 @@ export default class Game {
     this.minionPool = [];
     this.redTeam = {};
     this.blueTeam = {};
+    this.startTime = 0;
+    this.pausedTime = 0;
   }
 
   pause() {
@@ -114,6 +118,7 @@ export default class Game {
     // Current in game time -> used for gamestate checks and rendering
     // Ensures game continues at a consistance pace, even when game is paused/resumed
     const gameTime = msNow - this.startTime - this.pausedTime;
+    console.log("gameTime: ", gameTime);
 
     this.frame = window.requestAnimationFrame(this.loop);
 
