@@ -6,7 +6,7 @@ import GameObject from "./GameObject";
 import Vector from "./Vector";
 import getDistanceBetweenVectors from "../utils/getDistanceBetweenVectors";
 import vectorIntersectsObject from "../utils/vectorIntersectsObject";
-import { type TeamObject } from "../Game";
+import { type TeamObject } from "../ClientGame";
 
 export default class Minion extends GameObject {
   argoRange = 500;

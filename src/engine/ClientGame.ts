@@ -10,7 +10,7 @@ export type TeamObject = {
   [id: number]: GameObject;
 };
 
-export default class Game {
+export default class ClientGame {
   prevWaveTime: number = 0;
   prevMinionSpawn: number = 0;
   minionsSpawnedCurrWave: number = 0;

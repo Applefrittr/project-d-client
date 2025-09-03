@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
-import Game from "../engine/Game";
+import Game from "../engine/ClientGame";
 import settings from "../engine/settings.json";
 import MouseScrollOverlay from "../components/MouseScrollOverlay";
 import socket from "../server/socketConnection";

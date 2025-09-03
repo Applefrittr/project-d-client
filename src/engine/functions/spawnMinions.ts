@@ -1,7 +1,7 @@
 import type Minion from "../classes/Minion";
 import settings from "../settings.json";
 import setVelocityVector from "../utils/setVelocityVector";
-import { type TeamObject } from "../Game";
+import { type TeamObject } from "../ClientGame";
 
 export default function spawnMinions(
   pool: Minion[],

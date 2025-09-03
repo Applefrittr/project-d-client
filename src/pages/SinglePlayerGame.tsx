@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
-import Game from "../engine/Game";
+import ClientGame from "../engine/ClientGame";
 import settings from "../engine/settings.json";
 import MouseScrollOverlay from "../components/MouseScrollOverlay";
 import Canvas from "../components/Canvas";
@@ -7,7 +7,7 @@ import Canvas from "../components/Canvas";
 
 function SinglePlayerGame() {
   const game = useMemo(
-    () => new Game(settings["arena-width"], settings["arena-height"]),
+    () => new ClientGame(settings["arena-width"], settings["arena-height"]),
     []
   );
   const canvasRef = useRef<HTMLCanvasElement>(null);
