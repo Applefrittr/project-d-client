@@ -1,49 +1,30 @@
-import FPSController from "./classes/FPSController";
 import Minion from "./classes/Minion";
 import initializeMinionPool from "./functions/intializeMinionPool";
 import settings from "./settings.json";
 import Fortress from "./classes/Fortress";
-import GameObject from "./classes/GameObject";
 import spawnMinions from "./functions/spawnMinions";
+import BaseEngine from "./BaseEngine";
 
-export type TeamObject = {
-  [id: number]: GameObject;
-};
-
-export default class ClientGame {
+export default class ClientGame extends BaseEngine {
   prevWaveTime: number = 0;
   prevMinionSpawn: number = 0;
   minionsSpawnedCurrWave: number = 0;
   minionPool: Minion[] = [];
-  blueTeam: TeamObject = {};
-  redTeam: TeamObject = {};
   isPaused: boolean = false;
   isWaveSpawning: boolean = true;
   startTime: number = 0;
   pausedTime: number = 0;
 
-  // Client specific properties
-  ctx: CanvasRenderingContext2D | null = null;
-  canvasWidth: number;
-  canvasHeight: number;
-  frame: number = 0;
-  fpsController = new FPSController();
-  renderRate = 1000 / settings["fps"];
-
   constructor(width: number, height: number) {
-    this.canvasWidth = width;
-    this.canvasHeight = height;
-  }
-
-  setCanvasContext(ctx: CanvasRenderingContext2D | null) {
-    this.ctx = ctx;
+    super(width, height);
   }
 
   // intialize creates intial gamestate and creates object pools
   initialize() {
     console.log("initializing...");
-    this.blueTeam["-1"] = new Fortress("blue");
-    this.redTeam["-1"] = new Fortress("red");
+
+    this.gameObjects.push(new Fortress("blue"));
+    this.gameObjects.push(new Fortress("red"));
     this.minionPool = initializeMinionPool(this.minionPool, 100);
 
     this.prevWaveTime = performance.now();
@@ -52,45 +33,33 @@ export default class ClientGame {
 
   // render function loops through all game assets (class instances) and calls their respective update()
 
-  // REWORK THIS to interate through team Sets instead of Minion pool
-  // will have to add type property to GameObject class (ex: Minon, Tower, Fortress, etc)
-  render(currMs: number) {
+  // Iterate through GameObjects, update and render based on class (Minion, Fortress, Tower)
+  updateAndRenderObjects(currMs: number) {
     if (this.ctx) {
       this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
-      this.minionPool.forEach((minion) => {
-        if (minion.team === null) return;
-        if (minion.inCombat) {
-          minion.attack(currMs);
-        }
-        if (minion.team === "blue") {
-          if (minion.hitPoints <= 0) {
-            minion.destroy(this.blueTeam);
-            return;
-          }
-          minion.adjustPathingToTarget(this.blueTeam);
-          minion.detectTarget(this.redTeam);
-        } else {
-          if (minion.hitPoints <= 0) {
-            minion.destroy(this.redTeam);
-            return;
-          }
-          minion.adjustPathingToTarget(this.redTeam);
-          minion.detectTarget(this.blueTeam);
-        }
-        minion.update(this.ctx);
 
-        // temp just to render Fortresses
-        this.redTeam["-1"].draw(this.ctx);
-        this.blueTeam["-1"].draw(this.ctx);
-      });
+      // refactor filter out dead then update
+      this.gameObjects = this.gameObjects.filter((obj) => obj.hitPoints > 0);
+
+      for (const obj of this.gameObjects) {
+        if (obj instanceof Minion) {
+          if (obj.inCombat) {
+            obj.attack(currMs);
+          }
+          obj.adjustPathingToTarget(this.gameObjects);
+          obj.detectTarget(this.gameObjects);
+          obj.update(this.ctx);
+        } else if (obj instanceof Fortress) {
+          obj.draw(this.ctx);
+        } else continue;
+      }
     }
   }
 
   close() {
     window.cancelAnimationFrame(this.frame);
     this.minionPool = [];
-    this.redTeam = {};
-    this.blueTeam = {};
+    this.gameObjects = [];
     this.startTime = 0;
     this.pausedTime = 0;
   }
@@ -106,8 +75,7 @@ export default class ClientGame {
       this.isPaused = false;
     }
     console.log("minons: ", this.minionPool);
-    console.log("blue team: ", this.blueTeam);
-    console.log("red team: ", this.redTeam);
+    console.log("objects: ", this.gameObjects);
   }
 
   // main game loop -> loop is executed via requestAnimationFrame, checks game state, keeps track of game time, checks for win/lose conditions and calls render function
@@ -136,7 +104,7 @@ export default class ClientGame {
       this.minionPool &&
       gameTime - this.prevMinionSpawn >= settings["time-between-minions"]
     ) {
-      spawnMinions(this.minionPool, this.redTeam, this.blueTeam);
+      spawnMinions(this.minionPool, this.gameObjects);
       this.prevMinionSpawn = gameTime;
       this.minionsSpawnedCurrWave++;
       // checks to see if amount of minions spawned during current wave exceeds max per wave, if so, end wave spawning cycle
@@ -146,6 +114,6 @@ export default class ClientGame {
       }
     }
 
-    this.render(gameTime);
+    this.updateAndRenderObjects(gameTime);
   };
 }

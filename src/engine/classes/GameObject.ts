@@ -6,22 +6,37 @@ export default class GameObject {
   velocity: Vector = new Vector(0, 0);
   radius: number = 0;
   target: GameObject | null = null;
-  inCombat: boolean = false;
   hitPoints: number = 0;
-  team: string | null = null;
+  inCombat: boolean = false;
+  team: string = "";
 
   reset() {
     this.position = new Vector(0, 0);
     this.velocity = new Vector(0, 0);
     this.radius = 0;
     this.target = null;
-    this.inCombat = false;
     this.hitPoints = 0;
-    this.team = null;
+    this.team = "";
+    this.inCombat = false;
   }
 
   draw(ctx: CanvasRenderingContext2D | null) {
-    // temporary super method draw()
-    if (ctx) return;
+    if (ctx) {
+      ctx.beginPath();
+      ctx.fillStyle = this.team;
+      ctx.arc(this.position.x, this.position.y, this.radius, 0, 2 * Math.PI);
+      ctx.fill();
+      ctx.closePath();
+
+      ctx.fillStyle = "black";
+      ctx.font = "16px serif";
+      ctx.fillText(this.hitPoints.toString(), this.position.x, this.position.y);
+      ctx.fillText(
+        JSON.stringify(this.velocity),
+        this.position.x,
+        this.position.y + 16
+      );
+      ctx.fillText(this.id.toString(), this.position.x, this.position.y + 32);
+    }
   }
 }
