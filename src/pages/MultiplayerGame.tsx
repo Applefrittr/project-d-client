@@ -1,15 +1,15 @@
 import { useEffect, useMemo, useRef } from "react";
-import Game from "../engine/ClientGame";
+import Game from "../engine/MultiplayerEngine";
 import settings from "../engine/settings.json";
 import MouseScrollOverlay from "../components/MouseScrollOverlay";
 import socket from "../server/socketConnection";
 import Canvas from "../components/Canvas";
 
 function MultiplayerGame() {
-  //   const game = useMemo(
-  //     () => new Game(settings["arena-width"], settings["arena-height"]),
-  //     []
-  //   );
+  const game = useMemo(
+    () => new Game(settings["arena-width"], settings["arena-height"]),
+    []
+  );
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   //   function pauseGame() {
@@ -18,19 +18,19 @@ function MultiplayerGame() {
 
   useEffect(() => {
     // Initialize game loop
-    // if (canvasRef.current) {
-    //   const ctx = canvasRef.current.getContext("2d");
-    //   game.setCanvasContext(ctx);
+    if (canvasRef.current) {
+      const ctx = canvasRef.current.getContext("2d");
+      game.setCanvasContext(ctx);
 
-    //   game.initialize();
-    //   game.loop(performance.now());
-    // }
+      game.loop(performance.now());
+    }
 
     // Initialize socket connection
     socket.connect();
 
     socket.on("update", (state) => {
       console.log(state);
+      game.setGameObjects(state.gameObjects);
     });
 
     socket.on("connect_error", (error) => {
@@ -38,7 +38,7 @@ function MultiplayerGame() {
     });
 
     return () => {
-      //game.close();
+      game.close();
       socket.off("update");
       socket.off("connect_error");
       socket.close();

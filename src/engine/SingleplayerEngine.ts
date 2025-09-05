@@ -4,12 +4,14 @@ import settings from "./settings.json";
 import Fortress from "./classes/Fortress";
 import spawnMinions from "./functions/spawnMinions";
 import BaseEngine from "./BaseEngine";
+import type GameObject from "./classes/GameObject";
 
-export default class ClientGame extends BaseEngine {
+export default class SinglePlayerEngine extends BaseEngine {
   prevWaveTime: number = 0;
   prevMinionSpawn: number = 0;
   minionsSpawnedCurrWave: number = 0;
   minionPool: Minion[] = [];
+  gameObjects: GameObject[] = [];
   isPaused: boolean = false;
   isWaveSpawning: boolean = true;
   startTime: number = 0;
@@ -27,7 +29,6 @@ export default class ClientGame extends BaseEngine {
     this.gameObjects.push(new Fortress("red"));
     this.minionPool = initializeMinionPool(this.minionPool, 100);
 
-    this.prevWaveTime = performance.now();
     console.log("done");
   }
 
@@ -86,6 +87,9 @@ export default class ClientGame extends BaseEngine {
     // Current in game time -> used for gamestate checks and rendering
     // Ensures game continues at a consistance pace, even when game is paused/resumed
     const gameTime = msNow - this.startTime - this.pausedTime;
+
+    // Set initial time value for prevWaveSpawn -> used to calculate when to spawn Minion waves
+    if (!this.prevWaveTime) this.prevWaveTime = gameTime;
 
     this.frame = window.requestAnimationFrame(this.loop);
 
