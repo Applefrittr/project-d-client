@@ -42,10 +42,10 @@ export default class MultiplayerEngine extends BaseEngine {
     if (this.ctx) {
       this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
       for (const obj of this.gameObjects) {
-        obj.position.update(
-          roundHundrethPercision(obj.position.x + obj.velocity.x),
-          roundHundrethPercision(obj.position.y + obj.velocity.y)
-        );
+        // obj.position.update(
+        //   roundHundrethPercision(obj.position.x + obj.velocity.x),
+        //   roundHundrethPercision(obj.position.y + obj.velocity.y)
+        // );
         obj.draw(this.ctx);
       }
     }
@@ -58,6 +58,7 @@ export default class MultiplayerEngine extends BaseEngine {
     this.pausedTime = 0;
   }
 
+  // Main Game loop, checks FPSController before calling updateAndRender server recieved GameObjects
   loop = (msNow: number) => {
     // set intial start time of game loop
     if (!this.startTime) this.startTime = msNow;

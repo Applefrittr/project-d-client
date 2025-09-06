@@ -2,7 +2,7 @@ import settings from "../settings.json";
 
 export default class FPSController {
   msPrev: number = 0;
-  fps: number = settings["fps"];
+  fps: number = settings["tick-rate"];
   msPerFrame: number = 1000 / this.fps;
 
   constructor() {}
