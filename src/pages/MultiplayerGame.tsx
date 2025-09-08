@@ -4,6 +4,7 @@ import settings from "../engine/settings.json";
 import MouseScrollOverlay from "../components/MouseScrollOverlay";
 import socket from "../server/socketConnection";
 import Canvas from "../components/Canvas";
+import { type GameState } from "../engine/MultiplayerEngine";
 
 function MultiplayerGame() {
   const game = useMemo(
@@ -28,9 +29,10 @@ function MultiplayerGame() {
     // Initialize socket connection
     socket.connect();
 
-    socket.on("update", (state) => {
-      console.log(state);
-      game.setGameObjects(state.gameObjects);
+    socket.on("update", (state: GameState) => {
+      //console.log(state);
+      //game.setGameObjects(state.gameObjects);
+      game.appendBufferQueue(state);
     });
 
     socket.on("connect_error", (error) => {

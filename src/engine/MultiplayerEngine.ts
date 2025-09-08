@@ -1,8 +1,6 @@
 import BaseEngine from "./BaseEngine";
 import GameObject from "./classes/GameObject";
-
 import Vector from "./classes/Vector";
-import roundHundrethPercision from "./utils/roundHundrethPercision";
 
 type GameObjectData = {
   id: number;
@@ -13,10 +11,23 @@ type GameObjectData = {
   radius: number;
 };
 
+export type GameState = {
+  id: number;
+  gameObjects: GameObject[];
+  gameTime: number;
+  frame: number;
+};
+
+// Renders GameObjects recieved from the server.  Store recieved game states in a buffer queue to be rendering via linear interpolation behind the server's current state.
+// Will ideally create a smooth experience and hide any jittering/teleportation in rendering due to network instability
+
 export default class MultiplayerEngine extends BaseEngine {
   gameObjects: GameObject[] = [];
   startTime: number = 0;
   pausedTime: number = 0;
+  currState: GameState | undefined = undefined;
+  bufferQueue: GameState[] = [];
+  bufferDelay: number = 50;
 
   constructor(width: number, height: number) {
     super(width, height);
@@ -51,6 +62,10 @@ export default class MultiplayerEngine extends BaseEngine {
     }
   }
 
+  appendBufferQueue(state: GameState) {
+    this.bufferQueue.push(state);
+  }
+
   close() {
     window.cancelAnimationFrame(this.frame);
     this.gameObjects = [];
@@ -65,13 +80,22 @@ export default class MultiplayerEngine extends BaseEngine {
 
     // Current in game time -> used for gamestate checks and rendering
     // Ensures game continues at a consistance pace, even when game is paused/resumed
-    const gameTime = msNow - this.startTime - this.pausedTime;
+    const currTime = msNow - this.startTime - this.pausedTime;
 
     this.frame = window.requestAnimationFrame(this.loop);
 
-    // fpsController ensures render and game state checks are locked to specific FPS
-    if (!this.fpsController.renderFrame(gameTime)) return;
+    // buffer delay to delay rendering behind the current server state -> ideal for state interpolation
+    if (currTime < this.bufferDelay) return;
 
-    this.updateAndRenderObjects();
+    // fpsController ensures render and game state checks are locked to specific FPS
+    if (!this.fpsController.renderFrame(currTime)) return;
+    console.log(this.bufferQueue);
+    // set current state from buffer queue
+    this.currState = this.bufferQueue.shift();
+
+    if (this.currState) {
+      this.setGameObjects(this.currState.gameObjects);
+      this.updateAndRenderObjects();
+    }
   };
 }

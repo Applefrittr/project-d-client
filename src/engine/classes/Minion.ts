@@ -33,10 +33,11 @@ export default class Minion extends GameObject {
     }
   }
 
-  // iterates through the Set of opposing team GameObjects to detect potential targets and assigns the closest one to the Minion as the target
+  // iterates through the GameObjects to detect potential targets and assigns the closest one to the Minion as the target
   // skips if Minion is inCombat
   detectTarget(gameObjects: GameObject[]) {
     if (this.inCombat) return;
+
     let currTarget: GameObject | null = null,
       targetDistance: number | null = Infinity,
       enemyFortress: Fortress | null = null;
