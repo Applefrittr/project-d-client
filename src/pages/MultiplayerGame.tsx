@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Game from "../engine/MultiplayerEngine";
 import settings from "../engine/settings.json";
 import MouseScrollOverlay from "../components/MouseScrollOverlay";
@@ -11,11 +11,14 @@ function MultiplayerGame() {
     () => new Game(settings["arena-width"], settings["arena-height"]),
     []
   );
+  const [gameRunning, setGameRunning] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  //   function pauseGame() {
-  //     game.pause();
-  //   }
+  const sendStartSignal = () => {
+    console.log("Sending sever start message");
+    socket.emit("sv_start");
+    setGameRunning(true);
+  };
 
   useEffect(() => {
     // Initialize game loop
@@ -23,7 +26,7 @@ function MultiplayerGame() {
       const ctx = canvasRef.current.getContext("2d");
       game.setCanvasContext(ctx);
 
-      game.loop(performance.now());
+      //game.loop(performance.now());
     }
 
     // Initialize socket connection
@@ -35,6 +38,11 @@ function MultiplayerGame() {
       game.appendBufferQueue(state);
     });
 
+    socket.on("cl_start", () => {
+      console.log("recieved server start msg");
+      game.loop(performance.now());
+    });
+
     socket.on("connect_error", (error) => {
       console.log(error.message);
     });
@@ -42,6 +50,7 @@ function MultiplayerGame() {
     return () => {
       game.close();
       socket.off("update");
+      socket.off("cl_start");
       socket.off("connect_error");
       socket.close();
     };
@@ -51,12 +60,14 @@ function MultiplayerGame() {
     <>
       <section className="relative scroll-m-0">
         <MouseScrollOverlay />
-        <button
-          //onClick={pauseGame}
-          className="m-7 bg-amber-300 p-2 hover:cursor-pointer"
-        >
-          Pause
-        </button>
+        {!gameRunning && (
+          <button
+            className="p-3 rounded-b-sm bg-amber-100 absolute top-8 left-1/2"
+            onClick={sendStartSignal}
+          >
+            Start
+          </button>
+        )}
         <Canvas canvasRef={canvasRef} />
       </section>
     </>

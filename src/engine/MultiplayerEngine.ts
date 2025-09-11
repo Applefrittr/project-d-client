@@ -1,6 +1,8 @@
 import BaseEngine from "./BaseEngine";
 import GameObject from "./classes/GameObject";
+import Minion from "./classes/Minion";
 import Vector from "./classes/Vector";
+import vectorLerp from "./utils/vectorLerp";
 
 type GameObjectData = {
   id: number;
@@ -11,9 +13,13 @@ type GameObjectData = {
   radius: number;
 };
 
+type GameObjectMap = {
+  [id: string]: GameObjectData;
+};
+
 export type GameState = {
   id: number;
-  gameObjects: GameObject[];
+  objMap: GameObjectMap;
   gameTime: number;
   frame: number;
 };
@@ -22,44 +28,16 @@ export type GameState = {
 // Will ideally create a smooth experience and hide any jittering/teleportation in rendering due to network instability
 
 export default class MultiplayerEngine extends BaseEngine {
-  gameObjects: GameObject[] = [];
+  gameObjects: GameObjectMap = {};
   startTime: number = 0;
   pausedTime: number = 0;
   currState: GameState | undefined = undefined;
+  newState: GameState | undefined = undefined;
   bufferQueue: GameState[] = [];
-  bufferDelay: number = 50;
+  bufferDelay: number = 200;
 
   constructor(width: number, height: number) {
     super(width, height);
-  }
-
-  setGameObjects(data: GameObjectData[]) {
-    this.gameObjects = [];
-    for (const obj of data) {
-      const gameObject = new GameObject();
-      gameObject.id = obj.id;
-      gameObject.position = new Vector(obj.position.x, obj.position.y);
-      gameObject.velocity = new Vector(obj.velocity.x, obj.velocity.y);
-      gameObject.hitPoints = obj.hitPoints;
-      gameObject.team = obj.team;
-      gameObject.radius = obj.radius;
-
-      this.gameObjects.push(gameObject);
-    }
-    // console.log("gameObjects: ", this.gameObjects);
-  }
-
-  updateAndRenderObjects() {
-    if (this.ctx) {
-      this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
-      for (const obj of this.gameObjects) {
-        // obj.position.update(
-        //   roundHundrethPercision(obj.position.x + obj.velocity.x),
-        //   roundHundrethPercision(obj.position.y + obj.velocity.y)
-        // );
-        obj.draw(this.ctx);
-      }
-    }
   }
 
   appendBufferQueue(state: GameState) {
@@ -68,9 +46,33 @@ export default class MultiplayerEngine extends BaseEngine {
 
   close() {
     window.cancelAnimationFrame(this.frame);
-    this.gameObjects = [];
+    this.gameObjects = {};
     this.startTime = 0;
     this.pausedTime = 0;
+  }
+
+  renderObject(obj: GameObjectData) {
+    if (this.ctx) {
+      this.ctx.beginPath();
+      this.ctx.fillStyle = obj.team;
+      this.ctx.arc(obj.position.x, obj.position.y, obj.radius, 0, 2 * Math.PI);
+      this.ctx.fill();
+      this.ctx.closePath();
+
+      this.ctx.fillStyle = "black";
+      this.ctx.font = "16px serif";
+      this.ctx.fillText(
+        obj.hitPoints.toString(),
+        obj.position.x,
+        obj.position.y
+      );
+      this.ctx.fillText(
+        JSON.stringify(obj.velocity),
+        obj.position.x,
+        obj.position.y + 16
+      );
+      this.ctx.fillText(obj.id.toString(), obj.position.x, obj.position.y + 32);
+    }
   }
 
   // Main Game loop, checks FPSController before calling updateAndRender server recieved GameObjects
@@ -89,13 +91,27 @@ export default class MultiplayerEngine extends BaseEngine {
 
     // fpsController ensures render and game state checks are locked to specific FPS
     if (!this.fpsController.renderFrame(currTime)) return;
-    console.log(this.bufferQueue);
-    // set current state from buffer queue
-    this.currState = this.bufferQueue.shift();
 
-    if (this.currState) {
-      this.setGameObjects(this.currState.gameObjects);
-      this.updateAndRenderObjects();
+    const gameTime = performance.now() - (this.startTime + this.bufferDelay);
+
+    if (this.ctx) {
+      this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
+      console.log(this.bufferQueue);
+      // set current state and new state from buffer queue
+      this.currState = this.bufferQueue.shift();
+      console.log(
+        "serverT: ",
+        this.bufferQueue[0].gameTime,
+        "clientT: ",
+        gameTime
+      );
+
+      if (this.currState) {
+        this.gameObjects = { ...this.currState.objMap };
+      }
+      for (const obj of Object.values(this.gameObjects)) {
+        this.renderObject(obj);
+      }
     }
   };
 }
