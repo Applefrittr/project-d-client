@@ -1,6 +1,4 @@
 import BaseEngine from "./BaseEngine";
-import GameObject from "./classes/GameObject";
-import Minion from "./classes/Minion";
 import Vector from "./classes/Vector";
 import vectorLerp from "./utils/vectorLerp";
 
@@ -20,7 +18,7 @@ type GameObjectMap = {
 export type GameState = {
   id: number;
   objMap: GameObjectMap;
-  gameTime: number;
+  serverTime: number;
   frame: number;
 };
 
@@ -32,9 +30,9 @@ export default class MultiplayerEngine extends BaseEngine {
   startTime: number = 0;
   pausedTime: number = 0;
   currState: GameState | undefined = undefined;
-  newState: GameState | undefined = undefined;
+  nextState: GameState | undefined = undefined;
   bufferQueue: GameState[] = [];
-  bufferDelay: number = 200;
+  bufferDelay: number = 1000;
 
   constructor(width: number, height: number) {
     super(width, height);
@@ -51,37 +49,69 @@ export default class MultiplayerEngine extends BaseEngine {
     this.pausedTime = 0;
   }
 
-  renderObject(obj: GameObjectData) {
-    if (this.ctx) {
-      this.ctx.beginPath();
-      this.ctx.fillStyle = obj.team;
-      this.ctx.arc(obj.position.x, obj.position.y, obj.radius, 0, 2 * Math.PI);
-      this.ctx.fill();
-      this.ctx.closePath();
+  // Interpolation w/ spawn and despawn detection
+  interpolateObjects(stateA: GameState, stateB: GameState, time: number) {
+    // Find our interpolation alpha based on where time falls between stateA and stateB times
+    const alpha =
+      (time - stateA.serverTime) / (stateB.serverTime - stateA.serverTime);
 
-      this.ctx.fillStyle = "black";
-      this.ctx.font = "16px serif";
-      this.ctx.fillText(
-        obj.hitPoints.toString(),
-        obj.position.x,
-        obj.position.y
-      );
-      this.ctx.fillText(
-        JSON.stringify(obj.velocity),
-        obj.position.x,
-        obj.position.y + 16
-      );
-      this.ctx.fillText(obj.id.toString(), obj.position.x, obj.position.y + 32);
+    // aggregate all IDs between stateA and stateB object maps and create a new Set
+    const allObjIDs = new Set([
+      ...Object.keys(stateA.objMap),
+      ...Object.keys(stateB.objMap),
+    ]);
+
+    // iterate through the Set and spawn/despawn/interpolate as needed on our Game gameObjects map
+    for (const id of allObjIDs) {
+      const oldObj = stateA.objMap[id];
+      const newObj = stateB.objMap[id];
+
+      // spawn in Obj
+      if (!oldObj && newObj) {
+        this.gameObjects[id] = { ...newObj };
+      }
+      // despawn/destroy Obj
+      else if (oldObj && !newObj) {
+        delete this.gameObjects[id];
+      }
+      // interpolate
+      else if (oldObj && newObj) {
+        if (!this.gameObjects[id]) this.gameObjects[id] = { ...oldObj }; // spawn if somehow an obj is in both states but not yet in gameObjects map
+        this.gameObjects[id].position = vectorLerp(
+          oldObj.position,
+          newObj.position,
+          alpha
+        );
+      }
     }
   }
 
-  // Main Game loop, checks FPSController before calling updateAndRender server recieved GameObjects
+  // Render the gameObjects map
+  renderObjects() {
+    if (this.ctx) {
+      this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
+
+      for (const obj of Object.values(this.gameObjects)) {
+        this.ctx.beginPath();
+        this.ctx.fillStyle = obj.team;
+        this.ctx.arc(
+          obj.position.x,
+          obj.position.y,
+          obj.radius,
+          0,
+          2 * Math.PI
+        );
+        this.ctx.fill();
+        this.ctx.closePath();
+      }
+    }
+  }
+
+  // Main Game loop, checks FPSController before main render functions
   loop = (msNow: number) => {
     // set intial start time of game loop
     if (!this.startTime) this.startTime = msNow;
 
-    // Current in game time -> used for gamestate checks and rendering
-    // Ensures game continues at a consistance pace, even when game is paused/resumed
     const currTime = msNow - this.startTime - this.pausedTime;
 
     this.frame = window.requestAnimationFrame(this.loop);
@@ -92,26 +122,30 @@ export default class MultiplayerEngine extends BaseEngine {
     // fpsController ensures render and game state checks are locked to specific FPS
     if (!this.fpsController.renderFrame(currTime)) return;
 
-    const gameTime = performance.now() - (this.startTime + this.bufferDelay);
+    const renderTime = performance.now() - (this.startTime + this.bufferDelay);
 
-    if (this.ctx) {
-      this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
-      console.log(this.bufferQueue);
-      // set current state and new state from buffer queue
-      this.currState = this.bufferQueue.shift();
-      console.log(
-        "serverT: ",
-        this.bufferQueue[0].gameTime,
-        "clientT: ",
-        gameTime
-      );
+    // sort buffer queue in ascending order by server time
+    this.bufferQueue.sort(
+      (stateA, stateB) => stateA.serverTime - stateB.serverTime
+    );
 
-      if (this.currState) {
-        this.gameObjects = { ...this.currState.objMap };
-      }
-      for (const obj of Object.values(this.gameObjects)) {
-        this.renderObject(obj);
-      }
+    // find our bounding frames according to render time
+    let frame = 0;
+
+    while (renderTime > this.bufferQueue[frame + 1].serverTime) {
+      frame++;
     }
+
+    const oldState = this.bufferQueue[frame];
+    const newState = this.bufferQueue[frame + 1];
+
+    // possible extrapolation logic if oldState or newState doesn't exist here
+    // this.extrapolateObjects(...)
+
+    this.interpolateObjects(oldState, newState, renderTime);
+    this.renderObjects();
+
+    // remove all stale server states
+    this.bufferQueue.splice(0, frame);
   };
 }
