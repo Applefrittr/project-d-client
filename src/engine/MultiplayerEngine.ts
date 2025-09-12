@@ -123,6 +123,7 @@ export default class MultiplayerEngine extends BaseEngine {
     if (!this.fpsController.renderFrame(currTime)) return;
 
     const renderTime = performance.now() - (this.startTime + this.bufferDelay);
+    console.log(renderTime, this.gameObjects);
 
     // sort buffer queue in ascending order by server time
     this.bufferQueue.sort(

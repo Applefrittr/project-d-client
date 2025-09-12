@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router";
 import Game from "../engine/MultiplayerEngine";
 import settings from "../engine/settings.json";
 import MouseScrollOverlay from "../components/MouseScrollOverlay";
 import socket from "../server/socketConnection";
 import Canvas from "../components/Canvas";
+import Button from "../components/Button";
 import { type GameState } from "../engine/MultiplayerEngine";
 
 function MultiplayerGame() {
@@ -13,6 +15,8 @@ function MultiplayerGame() {
   );
   const [gameRunning, setGameRunning] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const navigate = useNavigate();
+  const { id } = useParams();
 
   const sendStartSignal = () => {
     console.log("Sending sever start message");
@@ -20,21 +24,25 @@ function MultiplayerGame() {
     setGameRunning(true);
   };
 
+  const leaveLobby = () => {
+    // go back to lobby list
+    // emit to socket that player is leaving lobby
+    navigate("/lobbies");
+  };
+
   useEffect(() => {
-    // Initialize game loop
     if (canvasRef.current) {
       const ctx = canvasRef.current.getContext("2d");
       game.setCanvasContext(ctx);
-
-      //game.loop(performance.now());
     }
 
     // Initialize socket connection
+    // Add room connection -> room's based on lobby generated ID
     socket.connect();
 
+    socket.emit("join lobby", id);
+
     socket.on("update", (state: GameState) => {
-      //console.log(state);
-      //game.setGameObjects(state.gameObjects);
       game.appendBufferQueue(state);
     });
 
@@ -57,20 +65,21 @@ function MultiplayerGame() {
   }, []);
 
   return (
-    <>
-      <section className="relative scroll-m-0">
-        <MouseScrollOverlay />
-        {!gameRunning && (
-          <button
-            className="p-3 rounded-b-sm bg-amber-100 absolute top-8 left-1/2"
-            onClick={sendStartSignal}
-          >
-            Start
-          </button>
-        )}
-        <Canvas canvasRef={canvasRef} />
-      </section>
-    </>
+    <main className="scroll-m-0 min-h-dvh">
+      {!gameRunning && (
+        <section className="h-dvh overflow-hidden bg-[rgba(0,0,0,0.5)] flex justify-center items-center">
+          <div className="p-8 bg-amber-300 rounded-md">
+            <h1>Lobby</h1>
+            <section>Player List</section>
+            <Button cb={sendStartSignal}>Ready</Button>
+            <Button cb={leaveLobby}>Leave</Button>
+          </div>
+        </section>
+      )}
+
+      <MouseScrollOverlay />
+      <Canvas canvasRef={canvasRef} />
+    </main>
   );
 }
 

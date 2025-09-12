@@ -5,6 +5,7 @@ import Home from "./pages/Home.tsx";
 import "./main.css";
 import SinglePlayerGame from "./pages/SinglePlayerGame.tsx";
 import MultiplayerGame from "./pages/MultiplayerGame.tsx";
+import MultiplayerLobbies from "./pages/MultiplayerLobbies.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
@@ -12,7 +13,9 @@ createRoot(document.getElementById("root")!).render(
       <Routes>
         <Route index element={<Home />} />
         <Route path="singleplayer" element={<SinglePlayerGame />} />
-        <Route path="multiplayer" element={<MultiplayerGame />} />
+        <Route path="lobbies" element={<MultiplayerLobbies />} />
+        <Route path="lobbies/:id" element={<MultiplayerGame />} />
+        {/* <Route path="multiplayer" element={<MultiplayerGame />} /> */}
       </Routes>
     </HashRouter>
   </StrictMode>

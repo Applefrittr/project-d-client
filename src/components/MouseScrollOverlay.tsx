@@ -12,7 +12,7 @@ function mouseScroll(event: React.MouseEvent) {
             top: settings["arena-height"] / -100,
             behavior: "smooth",
           });
-        }, 1000 / settings["fps"]);
+        }, 1000 / settings["tick-rate"]);
         break;
       case "right":
         scrollInterval = setInterval(() => {
@@ -20,7 +20,7 @@ function mouseScroll(event: React.MouseEvent) {
             left: settings["arena-height"] / 100,
             behavior: "smooth",
           });
-        }, 1000 / settings["fps"]);
+        }, 1000 / settings["tick-rate"]);
         break;
       case "bottom":
         scrollInterval = setInterval(() => {
@@ -28,7 +28,7 @@ function mouseScroll(event: React.MouseEvent) {
             top: settings["arena-height"] / 100,
             behavior: "smooth",
           });
-        }, 1000 / settings["fps"]);
+        }, 1000 / settings["tick-rate"]);
         break;
       case "left":
         scrollInterval = setInterval(() => {
@@ -36,7 +36,7 @@ function mouseScroll(event: React.MouseEvent) {
             left: settings["arena-height"] / -100,
             behavior: "smooth",
           });
-        }, 1000 / settings["fps"]);
+        }, 1000 / settings["tick-rate"]);
         break;
     }
   }

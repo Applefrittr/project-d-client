@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 
-export default function Home() {
+function Home() {
   return (
     <main className="h-dvh w-full flex justify-center items-center">
       <header className="m-auto p-8">
@@ -8,11 +8,14 @@ export default function Home() {
         <div className="flex gap-6">
           <Link
             to="/singleplayer"
-            className="p-2 bg-blue-300 rounded-xs m-auto"
+            className="px-8 py-2 bg-blue-800 text-white rounded-lg"
           >
             Singleplayer
           </Link>
-          <Link to="/multiplayer" className="p-2 bg-blue-300 rounded-xs m-auto">
+          <Link
+            to="/lobbies"
+            className="px-8 py-2 bg-blue-800 text-white rounded-lg"
+          >
             Multiplayer
           </Link>
         </div>
@@ -20,3 +23,4 @@ export default function Home() {
     </main>
   );
 }
+export default Home;
