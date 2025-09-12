@@ -26,6 +26,18 @@ export default class Vector {
     return this;
   }
 
+  add(v: Vector) {
+    this.x += v.x;
+    this.y += v.y;
+    return this;
+  }
+
+  subtract(v: Vector) {
+    this.x -= v.x;
+    this.y -= v.y;
+    return this;
+  }
+
   update(x: number, y: number) {
     this.x = x;
     this.y = y;

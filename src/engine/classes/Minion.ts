@@ -6,18 +6,16 @@ import GameObject from "./GameObject";
 import Vector from "./Vector";
 import getDistanceBetweenVectors from "../utils/getDistanceBetweenVectors";
 import vectorIntersectsObject from "../utils/vectorIntersectsObject";
+import Fortress from "./Fortress";
 
 export default class Minion extends GameObject {
-  team: string | null = null;
   argoRange = 500;
   lookAhead = new Vector(0, 0);
   lookAhead2x = new Vector(0, 0);
   radius = settings["minion-radius"];
   prevAttackTime: number = 0;
-  visionConeWidth: number = Math.PI / 4;
-  visConeRight: number = 0;
-  visConeLeft: number = 0;
   immediateCollisionThreat: GameObject | null = null;
+  inCombat: boolean = false;
 
   // assigns Minion to a team and positions Vectors on canvas -> function is invoked when spawnWave is called during main Game loop
   assignTeam(team: "red" | "blue") {
@@ -35,20 +33,27 @@ export default class Minion extends GameObject {
     }
   }
 
-  // iterates through the Set of opposing team GameObjects to detect potential targets and assigns the closest one to the Minion as the target
+  // iterates through the GameObjects to detect potential targets and assigns the closest one to the Minion as the target
   // skips if Minion is inCombat
-  detectTarget(oppTeam: Set<GameObject>) {
+  detectTarget(gameObjects: GameObject[]) {
     if (this.inCombat) return;
-    let currTarget: GameObject | null = null,
-      targetDistance: number | null = Infinity;
 
-    for (const minion of oppTeam) {
+    let currTarget: GameObject | null = null,
+      targetDistance: number | null = Infinity,
+      enemyFortress: Fortress | null = null;
+
+    for (const obj of gameObjects) {
+      // skip if Minion is detectTarget against itself or GameObject is the same team
+      if (this.id === obj.id || this.team === obj.team) continue;
+      // save obj pointer if it is enemy Fortress
+      if (obj instanceof Fortress) enemyFortress = obj;
+
       const currDistance = getDistanceBetweenVectors(
         this.position,
-        minion.position
+        obj.position
       );
       if (currDistance < this.argoRange && currDistance < targetDistance) {
-        currTarget = minion;
+        currTarget = obj;
         targetDistance = currDistance;
       }
     }
@@ -57,12 +62,12 @@ export default class Minion extends GameObject {
     if (currTarget) {
       this.target = currTarget;
     } else {
-      this.target = [...oppTeam][0];
+      this.target = enemyFortress;
     }
   }
 
   // Path adjustments to Minions target vector as it apporaches/collides with other objects on the same team
-  adjustPathingToTarget(team: Set<GameObject>) {
+  adjustPathingToTarget(gameObjects: GameObject[]) {
     // return if Minion is currently in Combat -> we don't want to adjust a Minion's pathing if it is currently fighting an enemy
     if (this.inCombat) return;
 
@@ -71,9 +76,9 @@ export default class Minion extends GameObject {
 
     // loop through Set of team Game Objects
     // iterate over the team in REVERSE ORDER OF INSERTION to ensure new Team Objects dont push Minion into older team Objects
-    for (const obj of Array.from(team).reverse()) {
+    for (const obj of gameObjects) {
       // skip collision detection for the Minion against itself
-      if (this.id === obj.id) continue;
+      if (this.id === obj.id || this.team !== obj.team) continue;
 
       // calc distance between Minion and curr Game Object
       const dist = getDistanceBetweenVectors(this.position, obj.position);
@@ -103,6 +108,7 @@ export default class Minion extends GameObject {
         }
       }
     }
+
     this.immediateCollisionThreat = closestCollisionThreat;
   }
 
@@ -135,50 +141,25 @@ export default class Minion extends GameObject {
         return;
       this.prevAttackTime = currMs;
       this.target.hitPoints -= 10;
+      if (this.target.hitPoints <= 0) {
+        this.inCombat = false;
+        this.target.reset();
+      }
     }
-  }
-
-  // reset Minion back to Game Minion pool once hitpoints reach zero
-  destroy(team: Set<GameObject>) {
-    team.delete(this);
-    this.team = null;
-    super.reset();
-    return;
   }
 
   draw(ctx: CanvasRenderingContext2D) {
-    if (typeof this.team === "string") {
-      // draw Minion body
-      ctx.beginPath();
-      ctx.fillStyle = this.team;
-      ctx.arc(this.position.x, this.position.y, this.radius, 0, 2 * Math.PI);
-      ctx.fill();
-      ctx.closePath();
+    super.draw(ctx);
 
-      // TEMP - Display hitpoints, ID, and Vector direction
-      ctx.fillStyle = "black";
-      ctx.font = "16px serif";
-      ctx.fillText(this.hitPoints.toString(), this.position.x, this.position.y);
-      ctx.fillText(
-        JSON.stringify(this.velocity),
-        this.position.x,
-        this.position.y + 16
-      );
+    ctx.beginPath();
+    ctx.strokeStyle = "black";
+    ctx.arc(this.lookAhead.x, this.lookAhead.y, 5, 0, 2 * Math.PI);
+    ctx.stroke();
 
-      ctx.beginPath();
-      ctx.strokeStyle = "black";
-      // ctx.moveTo(this.position.x, this.position.y);
-      // ctx.lineTo(this.lookAhead.x, this.lookAhead.y);
-      ctx.arc(this.lookAhead.x, this.lookAhead.y, 5, 0, 2 * Math.PI);
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.strokeStyle = "orange";
-      // ctx.moveTo(this.position.x, this.position.y);
-      // ctx.lineTo(this.lookAhead2x.x, this.lookAhead2x.y);
-      ctx.arc(this.lookAhead2x.x, this.lookAhead2x.y, 5, 0, 2 * Math.PI);
-      ctx.stroke();
-    }
+    ctx.beginPath();
+    ctx.strokeStyle = "orange";
+    ctx.arc(this.lookAhead2x.x, this.lookAhead2x.y, 5, 0, 2 * Math.PI);
+    ctx.stroke();
   }
 
   update(ctx: CanvasRenderingContext2D | null) {
