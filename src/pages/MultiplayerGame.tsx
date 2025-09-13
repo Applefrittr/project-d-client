@@ -13,6 +13,7 @@ function MultiplayerGame() {
     () => new Game(settings["arena-width"], settings["arena-height"]),
     []
   );
+
   const [gameRunning, setGameRunning] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const navigate = useNavigate();
@@ -20,7 +21,7 @@ function MultiplayerGame() {
 
   const sendStartSignal = () => {
     console.log("Sending sever start message");
-    socket.emit("sv_start");
+    socket.emit("sv_start", id);
     setGameRunning(true);
   };
 
@@ -40,7 +41,7 @@ function MultiplayerGame() {
     // Add room connection -> room's based on lobby generated ID
     socket.connect();
 
-    socket.emit("join lobby", id);
+    socket.emit("join_lobby", id);
 
     socket.on("update", (state: GameState) => {
       game.appendBufferQueue(state);
@@ -71,8 +72,10 @@ function MultiplayerGame() {
           <div className="p-8 bg-amber-300 rounded-md">
             <h1>Lobby</h1>
             <section>Player List</section>
-            <Button cb={sendStartSignal}>Ready</Button>
-            <Button cb={leaveLobby}>Leave</Button>
+            <div className="flex gap-4">
+              <Button cb={sendStartSignal}>Ready</Button>
+              <Button cb={leaveLobby}>Leave</Button>
+            </div>
           </div>
         </section>
       )}
