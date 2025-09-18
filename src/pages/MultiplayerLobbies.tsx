@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import Button from "../components/Button";
+import Navigtation from "../components/Navigation";
 
 type LobbyData = {
   id: number;
@@ -35,7 +36,8 @@ function MultiplayerLobbies() {
 
   return (
     <main className="flex justify-center items-center h-dvh">
-      <section className="p-8 rounded-md bg-blue-200">
+      <Navigtation />
+      <section className="p-8 rounded-md bg-main-theme">
         <h1>Current Lobbies</h1>
         <div>
           {state.lobbies &&

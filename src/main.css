@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+@theme {
+  --color-main-theme: oklch(88.2% 0.059 254.128);
+}
+
 * {
   box-sizing: border-box;
   /* scrollbar-width: none; */

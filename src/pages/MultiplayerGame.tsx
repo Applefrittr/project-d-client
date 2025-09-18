@@ -3,10 +3,11 @@ import { useNavigate, useParams } from "react-router";
 import Game from "../engine/MultiplayerEngine";
 import settings from "../engine/settings.json";
 import MouseScrollOverlay from "../components/MouseScrollOverlay";
-import socket from "../server/socketConnection";
+import socket from "../services/socketInstance";
 import Canvas from "../components/Canvas";
 import Button from "../components/Button";
 import { type GameState } from "../engine/MultiplayerEngine";
+import Navigtation from "../components/Navigation";
 
 function MultiplayerGame() {
   const game = useMemo(
@@ -41,8 +42,6 @@ function MultiplayerGame() {
     // Add room connection -> room's based on lobby generated ID
     socket.connect();
 
-    socket.emit("join_lobby", id);
-
     socket.on("update", (state: GameState) => {
       game.appendBufferQueue(state);
     });
@@ -56,6 +55,8 @@ function MultiplayerGame() {
       console.log(error.message);
     });
 
+    socket.emit("join_lobby", id);
+
     return () => {
       game.close();
       socket.off("update");
@@ -67,6 +68,7 @@ function MultiplayerGame() {
 
   return (
     <main className="scroll-m-0 min-h-dvh">
+      <Navigtation />
       {!gameRunning && (
         <section className="h-dvh overflow-hidden bg-[rgba(0,0,0,0.5)] flex justify-center items-center">
           <div className="p-8 bg-amber-300 rounded-md">
