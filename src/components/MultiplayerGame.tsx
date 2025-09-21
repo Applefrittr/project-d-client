@@ -1,46 +1,42 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { useState, useRef, useEffect, useMemo } from "react";
+import Canvas from "./Canvas";
 import Game from "../engine/MultiplayerEngine";
 import settings from "../engine/settings.json";
-import MouseScrollOverlay from "../components/MouseScrollOverlay";
-import socket from "../services/socketInstance";
-import Canvas from "../components/Canvas";
-import Button from "../components/Button";
-import { type GameState } from "../engine/MultiplayerEngine";
-import Navigtation from "../components/Navigation";
+import MouseScrollOverlay from "./MouseScrollOverlay";
+import type { GameState } from "../engine/MultiplayerEngine";
+import socket from "../services/socket.io/socketInstance";
+import { useNavigate } from "react-router";
+import Button from "./Button";
+import type { Lobby } from "../services/tanstack/queries";
 
-function MultiplayerGame() {
+function MultiplayerGame({ lobby }: { lobby: Lobby }) {
+  const [gameRunning, setGameRunning] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const navigate = useNavigate();
+
+  console.log("in multiplayer comp: ", lobby);
+
   const game = useMemo(
     () => new Game(settings["arena-width"], settings["arena-height"]),
     []
   );
 
-  const [gameRunning, setGameRunning] = useState(false);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const navigate = useNavigate();
-  const { id } = useParams();
-
   const sendStartSignal = () => {
     console.log("Sending sever start message");
-    socket.emit("sv_start", id);
+    socket.emit("sv_start", lobby.gameID);
     setGameRunning(true);
   };
 
   const leaveLobby = () => {
-    // go back to lobby list
-    // emit to socket that player is leaving lobby
+    socket.disconnect();
     navigate("/lobbies");
   };
 
   useEffect(() => {
-    if (canvasRef.current) {
-      const ctx = canvasRef.current.getContext("2d");
-      game.setCanvasContext(ctx);
-    }
-
     // Initialize socket connection
     // Add room connection -> room's based on lobby generated ID
-    socket.connect();
+    //socket.connect();
+    //socket.emit("join_lobby", lobby.gameID);
 
     socket.on("update", (state: GameState) => {
       game.appendBufferQueue(state);
@@ -55,20 +51,28 @@ function MultiplayerGame() {
       console.log(error.message);
     });
 
-    socket.emit("join_lobby", id);
+    socket.on("sv_error", (msg) => {
+      console.log(msg);
+    });
 
     return () => {
       game.close();
       socket.off("update");
       socket.off("cl_start");
       socket.off("connect_error");
-      socket.close();
+      socket.off("sv_error");
+      //socket.disconnect();
     };
   }, []);
 
+  useEffect(() => {
+    if (canvasRef.current) {
+      const ctx = canvasRef.current.getContext("2d");
+      game.setCanvasContext(ctx);
+    }
+  }, [gameRunning]);
   return (
-    <main className="scroll-m-0 min-h-dvh">
-      <Navigtation />
+    <>
       {!gameRunning && (
         <section className="h-dvh overflow-hidden bg-[rgba(0,0,0,0.5)] flex justify-center items-center">
           <div className="p-8 bg-amber-300 rounded-md">
@@ -81,10 +85,13 @@ function MultiplayerGame() {
           </div>
         </section>
       )}
-
-      <MouseScrollOverlay />
-      <Canvas canvasRef={canvasRef} />
-    </main>
+      {gameRunning && (
+        <>
+          <MouseScrollOverlay />
+          <Canvas canvasRef={canvasRef} />
+        </>
+      )}
+    </>
   );
 }
 

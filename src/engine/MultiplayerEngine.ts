@@ -88,6 +88,7 @@ export default class MultiplayerEngine extends BaseEngine {
 
   // Render the gameObjects map
   renderObjects() {
+    console.log("render!", this.ctx);
     if (this.ctx) {
       this.ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
 

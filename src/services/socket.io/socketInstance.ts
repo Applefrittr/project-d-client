@@ -1,8 +1,7 @@
 import { io } from "socket.io-client";
+import { serverBaseURL } from "../serverBaseURL";
 
-const url = "http://localhost:6969";
-
-const socket = io(url, {
+const socket = io(serverBaseURL, {
   autoConnect: false,
   reconnectionAttempts: 2,
 });
