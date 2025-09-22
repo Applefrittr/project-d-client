@@ -3,12 +3,9 @@ import Button from "../components/Button";
 import Navigtation from "../components/Navigation";
 import LobbyList from "../components/LobbyList";
 import CreateLobbyForm from "../components/CreateLobbyForm";
-import socket from "../services/socket.io/socketInstance";
 
 function MultiplayerLobbies() {
   const [displayForm, setdisplayForm] = useState(false);
-
-  socket.disconnect();
 
   return (
     <main className="flex justify-center items-center h-dvh">

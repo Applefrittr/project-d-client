@@ -4,7 +4,6 @@ import { useContext } from "react";
 import { useNavigate } from "react-router";
 import { RandomUserContext } from "../auth/demo/context/RandomUserContext";
 import Button from "./Button";
-import socket from "../services/socket.io/socketInstance";
 
 function CreateLobbyForm({
   setDisplayForm,
@@ -20,9 +19,6 @@ function CreateLobbyForm({
     onSuccess: async (data: Lobby) => {
       await queryClient.invalidateQueries({ queryKey: ["lobbies"] });
       console.log("mutate onSuccess: ", data);
-
-      socket.connect();
-      socket.emit("join_lobby", data.gameID);
 
       navigate(`/lobbies/${data.gameID}`);
     },
@@ -42,6 +38,7 @@ function CreateLobbyForm({
       name: dataObj.name as string,
       playerCount: 0,
       host: user,
+      sockets: [],
     };
 
     mutation.mutate(newLobby);

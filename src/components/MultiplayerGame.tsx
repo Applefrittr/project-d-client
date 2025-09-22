@@ -1,9 +1,8 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import Canvas from "./Canvas";
-import Game from "../engine/MultiplayerEngine";
+import Game, { type GameState } from "../engine/MultiplayerEngine";
 import settings from "../engine/settings.json";
 import MouseScrollOverlay from "./MouseScrollOverlay";
-import type { GameState } from "../engine/MultiplayerEngine";
 import socket from "../services/socket.io/socketInstance";
 import { useNavigate } from "react-router";
 import Button from "./Button";
@@ -13,8 +12,6 @@ function MultiplayerGame({ lobby }: { lobby: Lobby }) {
   const [gameRunning, setGameRunning] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const navigate = useNavigate();
-
-  console.log("in multiplayer comp: ", lobby);
 
   const game = useMemo(
     () => new Game(settings["arena-width"], settings["arena-height"]),
@@ -35,8 +32,8 @@ function MultiplayerGame({ lobby }: { lobby: Lobby }) {
   useEffect(() => {
     // Initialize socket connection
     // Add room connection -> room's based on lobby generated ID
-    //socket.connect();
-    //socket.emit("join_lobby", lobby.gameID);
+    socket.connect();
+    socket.emit("join_lobby", lobby.gameID);
 
     socket.on("update", (state: GameState) => {
       game.appendBufferQueue(state);
@@ -61,7 +58,7 @@ function MultiplayerGame({ lobby }: { lobby: Lobby }) {
       socket.off("cl_start");
       socket.off("connect_error");
       socket.off("sv_error");
-      //socket.disconnect();
+      socket.disconnect();
     };
   }, []);
 
