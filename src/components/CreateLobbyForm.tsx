@@ -37,8 +37,8 @@ function CreateLobbyForm({
       gameID: Math.floor(Math.random() * 1000000),
       name: dataObj.name as string,
       playerCount: 0,
-      host: user,
       sockets: [],
+      players: [user],
     };
 
     mutation.mutate(newLobby);

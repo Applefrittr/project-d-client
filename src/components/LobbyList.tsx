@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getLobbyList } from "../services/tanstack/queries";
+import { getLobbyList, type Lobby } from "../services/tanstack/queries";
 
 function LobbyList() {
   const { isPending, isError, data, error } = useQuery({
@@ -17,8 +17,8 @@ function LobbyList() {
 
   return (
     <ul>
-      {data.map((lobby: any) => (
-        <li key={lobby.id}>{lobby.name}</li>
+      {data.map((lobby: Lobby) => (
+        <li key={lobby.gameID}>{lobby.name}</li>
       ))}
     </ul>
   );

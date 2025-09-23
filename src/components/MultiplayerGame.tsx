@@ -72,9 +72,20 @@ function MultiplayerGame({ lobby }: { lobby: Lobby }) {
     <>
       {!gameRunning && (
         <section className="h-dvh overflow-hidden bg-[rgba(0,0,0,0.5)] flex justify-center items-center">
-          <div className="p-8 bg-amber-300 rounded-md">
-            <h1>Lobby</h1>
-            <section>Player List</section>
+          <div className="p-9 bg-amber-300 rounded-md">
+            <h1 className="text-4xl font-bold">{lobby.name}</h1>
+            <section>
+              Players
+              <ul>
+                {lobby.players.map((player) => {
+                  return (
+                    <li key={player} className="p-3 w-full">
+                      {player}
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
             <div className="flex gap-4">
               <Button cb={sendStartSignal}>Ready</Button>
               <Button cb={leaveLobby}>Leave</Button>
