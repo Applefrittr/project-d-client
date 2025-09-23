@@ -1,7 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { getLobbyList, type Lobby } from "../services/tanstack/queries";
+import { useState } from "react";
 
-function LobbyList() {
+type LobbyListProps = {
+  handleSelect: (event: React.MouseEvent<HTMLLIElement, MouseEvent>) => void;
+  selectedLobby: number | undefined;
+};
+
+function LobbyList({ handleSelect, selectedLobby }: LobbyListProps) {
   const { isPending, isError, data, error } = useQuery({
     queryKey: ["lobbies"],
     queryFn: getLobbyList,
@@ -18,7 +24,16 @@ function LobbyList() {
   return (
     <ul>
       {data.map((lobby: Lobby) => (
-        <li key={lobby.gameID}>{lobby.name}</li>
+        <li
+          key={lobby.gameID}
+          data-gameid={lobby.gameID}
+          onClick={(event) => handleSelect(event)}
+          className={`p-3 w-full ${
+            lobby.gameID === selectedLobby ? "bg-green-500" : "bg-inherit"
+          } hover:cursor-pointer`}
+        >
+          <p className="text-2xl font-medium">{lobby.name}</p>
+        </li>
       ))}
     </ul>
   );
