@@ -38,7 +38,8 @@ function CreateLobbyForm({
       name: dataObj.name as string,
       playerCount: 0,
       sockets: [],
-      players: [user],
+      players: [],
+      host: user,
     };
 
     mutation.mutate(newLobby);

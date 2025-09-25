@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useEffect, useMemo, useContext } from "react";
 import Canvas from "./Canvas";
 import Game, { type GameState } from "../engine/MultiplayerEngine";
 import settings from "../engine/settings.json";
@@ -7,9 +7,10 @@ import socket from "../services/socket.io/socketInstance";
 import { useNavigate } from "react-router";
 import Button from "./Button";
 import type { Lobby } from "../services/tanstack/queries";
+import { RandomUserContext } from "../auth/demo/context/RandomUserContext";
 
 type MultiplayerGameState = {
-  lobby: Lobby;
+  lobby: Lobby | null;
   gameRunning: boolean;
 };
 
@@ -18,6 +19,7 @@ function MultiplayerGame({ lobby }: { lobby: Lobby }) {
     lobby,
     gameRunning: false,
   });
+  const user = useContext(RandomUserContext);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const navigate = useNavigate();
 
@@ -33,7 +35,6 @@ function MultiplayerGame({ lobby }: { lobby: Lobby }) {
   };
 
   const leaveLobby = () => {
-    socket.disconnect();
     navigate("/lobbies");
   };
 
@@ -41,10 +42,14 @@ function MultiplayerGame({ lobby }: { lobby: Lobby }) {
     // Initialize socket connection
     // Add room connection -> room's based on lobby generated ID
     socket.connect();
-    socket.emit("join_lobby", lobby.gameID);
+    socket.emit("lby_join", lobby.gameID, user);
 
     socket.on("update_game", (state: GameState) => {
       game.appendBufferQueue(state);
+    });
+
+    socket.on("lby_update", (lobbyData: Lobby) => {
+      setState({ ...state, lobby: lobbyData });
     });
 
     socket.on("cl_start", () => {
@@ -64,6 +69,7 @@ function MultiplayerGame({ lobby }: { lobby: Lobby }) {
       game.close();
       socket.off("update_game");
       socket.off("cl_start");
+      socket.off("lby_update");
       socket.off("connect_error");
       socket.off("sv_error");
       socket.disconnect();
@@ -76,19 +82,31 @@ function MultiplayerGame({ lobby }: { lobby: Lobby }) {
       game.setCanvasContext(ctx);
     }
   }, [state.gameRunning]);
+
+  if (!state.lobby) {
+    return (
+      <div>
+        Lobby Closed!
+        <Button cb={leaveLobby}>Leave</Button>
+      </div>
+    );
+  }
+
   return (
     <>
       {!state.gameRunning && (
         <section className="h-dvh overflow-hidden bg-[rgba(0,0,0,0.5)] flex justify-center items-center">
           <div className="p-9 bg-amber-300 rounded-md">
-            <h1 className="text-4xl font-bold">{state.lobby.name}</h1>
+            <h1 className="text-4xl font-bold">{state.lobby?.name}</h1>
             <section>
               Players
               <ul>
-                {state.lobby.players.map((player) => {
+                {state.lobby?.players.map((player) => {
                   return (
                     <li key={player} className="p-3 w-full">
-                      {player}
+                      {player === state.lobby?.host
+                        ? `${player} (host)`
+                        : player}
                     </li>
                   );
                 })}

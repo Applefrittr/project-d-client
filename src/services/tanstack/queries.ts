@@ -6,6 +6,7 @@ export type Lobby = {
   playerCount: number;
   sockets: string[];
   players: string[];
+  host: string;
 };
 
 export async function getLobbyList() {

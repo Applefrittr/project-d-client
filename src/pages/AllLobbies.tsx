@@ -5,7 +5,7 @@ import LobbyList from "../components/LobbyList";
 import CreateLobbyForm from "../components/CreateLobbyForm";
 import { Link } from "react-router";
 
-function MultiplayerLobbies() {
+function AllLobbies() {
   const [displayForm, setdisplayForm] = useState(false);
   const [selectedLobby, setSelectedLobby] = useState<number | undefined>(
     undefined
@@ -40,4 +40,4 @@ function MultiplayerLobbies() {
   );
 }
 
-export default MultiplayerLobbies;
+export default AllLobbies;
