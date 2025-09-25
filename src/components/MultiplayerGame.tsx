@@ -8,8 +8,16 @@ import { useNavigate } from "react-router";
 import Button from "./Button";
 import type { Lobby } from "../services/tanstack/queries";
 
+type MultiplayerGameState = {
+  lobby: Lobby;
+  gameRunning: boolean;
+};
+
 function MultiplayerGame({ lobby }: { lobby: Lobby }) {
-  const [gameRunning, setGameRunning] = useState(false);
+  const [state, setState] = useState<MultiplayerGameState>({
+    lobby,
+    gameRunning: false,
+  });
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const navigate = useNavigate();
 
@@ -21,7 +29,7 @@ function MultiplayerGame({ lobby }: { lobby: Lobby }) {
   const sendStartSignal = () => {
     console.log("Sending sever start message");
     socket.emit("sv_start", lobby.gameID);
-    setGameRunning(true);
+    setState({ ...state, gameRunning: true });
   };
 
   const leaveLobby = () => {
@@ -35,7 +43,7 @@ function MultiplayerGame({ lobby }: { lobby: Lobby }) {
     socket.connect();
     socket.emit("join_lobby", lobby.gameID);
 
-    socket.on("update", (state: GameState) => {
+    socket.on("update_game", (state: GameState) => {
       game.appendBufferQueue(state);
     });
 
@@ -54,7 +62,7 @@ function MultiplayerGame({ lobby }: { lobby: Lobby }) {
 
     return () => {
       game.close();
-      socket.off("update");
+      socket.off("update_game");
       socket.off("cl_start");
       socket.off("connect_error");
       socket.off("sv_error");
@@ -67,17 +75,17 @@ function MultiplayerGame({ lobby }: { lobby: Lobby }) {
       const ctx = canvasRef.current.getContext("2d");
       game.setCanvasContext(ctx);
     }
-  }, [gameRunning]);
+  }, [state.gameRunning]);
   return (
     <>
-      {!gameRunning && (
+      {!state.gameRunning && (
         <section className="h-dvh overflow-hidden bg-[rgba(0,0,0,0.5)] flex justify-center items-center">
           <div className="p-9 bg-amber-300 rounded-md">
-            <h1 className="text-4xl font-bold">{lobby.name}</h1>
+            <h1 className="text-4xl font-bold">{state.lobby.name}</h1>
             <section>
               Players
               <ul>
-                {lobby.players.map((player) => {
+                {state.lobby.players.map((player) => {
                   return (
                     <li key={player} className="p-3 w-full">
                       {player}
@@ -93,7 +101,7 @@ function MultiplayerGame({ lobby }: { lobby: Lobby }) {
           </div>
         </section>
       )}
-      {gameRunning && (
+      {state.gameRunning && (
         <>
           <MouseScrollOverlay />
           <Canvas canvasRef={canvasRef} />
