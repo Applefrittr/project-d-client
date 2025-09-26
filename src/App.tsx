@@ -8,6 +8,7 @@ import { RandomUserContext } from "./auth/demo/context/RandomUserContext.ts"; //
 import generateRandomUser from "./auth/demo/generateRandomUser.ts";
 import { useMemo } from "react";
 import { QueryClientProvider, QueryClient } from "@tanstack/react-query";
+import AppLayout from "./components/AppLayout.tsx";
 
 // Main App component -> router and all routes rendered through App
 // TESTING - Demoing random user generation and Context API
@@ -17,18 +18,20 @@ const queryClient = new QueryClient();
 function App() {
   const user = useMemo(() => generateRandomUser(), []);
   return (
-    <QueryClientProvider client={queryClient}>
-      <RandomUserContext value={user}>
-        <HashRouter>
-          <Routes>
-            <Route index element={<Home />} />
-            <Route path="singleplayer" element={<SinglePlayerGame />} />
-            <Route path="lobbies" element={<AllLobbies />} />
-            <Route path="lobbies/:id" element={<Lobby />} />
-          </Routes>
-        </HashRouter>
-      </RandomUserContext>
-    </QueryClientProvider>
+    <AppLayout>
+      <QueryClientProvider client={queryClient}>
+        <RandomUserContext value={user}>
+          <HashRouter>
+            <Routes>
+              <Route index element={<Home />} />
+              <Route path="singleplayer" element={<SinglePlayerGame />} />
+              <Route path="lobbies" element={<AllLobbies />} />
+              <Route path="lobbies/:id" element={<Lobby />} />
+            </Routes>
+          </HashRouter>
+        </RandomUserContext>
+      </QueryClientProvider>
+    </AppLayout>
   );
 }
 

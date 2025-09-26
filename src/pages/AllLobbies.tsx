@@ -17,7 +17,7 @@ function AllLobbies() {
   };
 
   return (
-    <main className="flex justify-center items-center h-dvh">
+    <>
       <Navigtation />
       <section className="p-8 rounded-md bg-main-theme">
         <h1>Current Lobbies</h1>
@@ -36,7 +36,7 @@ function AllLobbies() {
         </div>
       </section>
       {displayForm && <CreateLobbyForm setDisplayForm={setdisplayForm} />}
-    </main>
+    </>
   );
 }
 

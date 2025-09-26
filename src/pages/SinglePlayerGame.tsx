@@ -32,18 +32,16 @@ function SinglePlayerGame() {
   }, []);
 
   return (
-    <>
-      <section className="relative scroll-m-0">
-        <MouseScrollOverlay />
-        <button
-          onClick={pauseGame}
-          className="m-7 bg-amber-300 p-2 hover:cursor-pointer"
-        >
-          Pause
-        </button>
-        <Canvas canvasRef={canvasRef} />
-      </section>
-    </>
+    <section className="relative scroll-m-0">
+      <MouseScrollOverlay />
+      <button
+        onClick={pauseGame}
+        className="m-7 bg-amber-300 p-2 hover:cursor-pointer"
+      >
+        Pause
+      </button>
+      <Canvas canvasRef={canvasRef} />
+    </section>
   );
 }
 

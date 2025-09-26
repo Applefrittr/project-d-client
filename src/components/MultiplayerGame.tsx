@@ -95,7 +95,7 @@ function MultiplayerGame({ lobby }: { lobby: Lobby }) {
   return (
     <>
       {!state.gameRunning && (
-        <section className="h-dvh overflow-hidden bg-[rgba(0,0,0,0.5)] flex justify-center items-center">
+        <section className="h-dvh w-full bg-[rgba(0,0,0,0.5)] flex justify-center items-center">
           <div className="p-9 bg-amber-300 rounded-md">
             <h1 className="text-4xl font-bold">{state.lobby?.name}</h1>
             <section>
