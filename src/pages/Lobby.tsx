@@ -12,6 +12,7 @@ function Lobby() {
   const { isPending, isError, data, error } = useQuery({
     queryKey: ["lobby", id],
     queryFn: () => getLobby(Number(id) ?? 0),
+    refetchOnWindowFocus: false,
   });
 
   const leaveLobby = () => {

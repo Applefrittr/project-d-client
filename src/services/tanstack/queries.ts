@@ -20,7 +20,8 @@ export async function getLobbyList() {
 export async function getLobby(gameID: number) {
   const response = await fetch(`${serverBaseURL}/lobbies/${gameID}`);
   if (!response.ok) {
-    throw new Error("Error fetching lobby info");
+    const err = await response.json();
+    throw new Error(err);
   }
   return response.json();
 }
