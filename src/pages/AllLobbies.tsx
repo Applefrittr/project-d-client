@@ -19,7 +19,7 @@ function AllLobbies() {
   return (
     <>
       <Navigtation />
-      <section className="p-8 rounded-md bg-main-theme">
+      <section className="p-6 rounded-md bg-main-theme border border-black">
         <h1>Current Lobbies</h1>
         <LobbyList handleSelect={handleSelect} selectedLobby={selectedLobby} />
         <div className="flex gap-6">

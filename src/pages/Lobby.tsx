@@ -3,6 +3,7 @@ import Button from "../components/Button";
 import { useQuery } from "@tanstack/react-query";
 import { getLobby } from "../services/tanstack/queries";
 import MultiplayerGame from "../components/MultiplayerGame";
+import MsgModal from "../components/MsgModal";
 
 function Lobby() {
   const navigate = useNavigate();
@@ -18,15 +19,16 @@ function Lobby() {
   };
 
   if (isPending) {
-    return <span>Loading Lobby Info...</span>;
+    return <MsgModal>Loading Lobby info...</MsgModal>;
   }
 
   if (isError) {
     return (
-      <div className="mt-96 m-auto p-6 w-max">
+      <MsgModal className={"bg-red-200"}>
+        <h1 className="text-2xl font-medium mr-auto">Error!</h1>
         <p>{error.message}</p>
         <Button cb={leaveLobby}>Return to Lobbies</Button>
-      </div>
+      </MsgModal>
     );
   }
   return <MultiplayerGame lobby={data} />;

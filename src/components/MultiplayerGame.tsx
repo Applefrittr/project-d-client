@@ -8,6 +8,7 @@ import { useNavigate } from "react-router";
 import Button from "./Button";
 import type { Lobby } from "../services/tanstack/queries";
 import { RandomUserContext } from "../auth/demo/context/RandomUserContext";
+import MsgModal from "./MsgModal";
 
 type MultiplayerGameState = {
   lobby: Lobby | null;
@@ -85,46 +86,42 @@ function MultiplayerGame({ lobby }: { lobby: Lobby }) {
 
   if (!state.lobby) {
     return (
-      <div>
-        Lobby Closed!
-        <Button cb={leaveLobby}>Leave</Button>
-      </div>
+      <MsgModal className={"bg-red-200"}>
+        <h1 className="text-2xl font-medium mr-auto">Error!</h1>
+        <p>Lobby closed! Host has left the game.</p>
+        <Button cb={leaveLobby}>Return to Lobbies</Button>
+      </MsgModal>
+    );
+  }
+
+  if (!state.gameRunning) {
+    return (
+      <section className="p-9 bg-amber-300 rounded-md border border-black">
+        <h1 className="text-4xl font-bold">{state.lobby?.name}</h1>
+        <section>
+          Players
+          <ul>
+            {state.lobby?.players.map((player) => {
+              return (
+                <li key={player} className="p-3 w-full">
+                  {player === state.lobby?.host ? `${player} (host)` : player}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+        <div className="flex gap-4">
+          <Button cb={sendStartSignal}>Ready</Button>
+          <Button cb={leaveLobby}>Leave</Button>
+        </div>
+      </section>
     );
   }
 
   return (
     <>
-      {!state.gameRunning && (
-        <section className="h-dvh w-full bg-[rgba(0,0,0,0.5)] flex justify-center items-center">
-          <div className="p-9 bg-amber-300 rounded-md">
-            <h1 className="text-4xl font-bold">{state.lobby?.name}</h1>
-            <section>
-              Players
-              <ul>
-                {state.lobby?.players.map((player) => {
-                  return (
-                    <li key={player} className="p-3 w-full">
-                      {player === state.lobby?.host
-                        ? `${player} (host)`
-                        : player}
-                    </li>
-                  );
-                })}
-              </ul>
-            </section>
-            <div className="flex gap-4">
-              <Button cb={sendStartSignal}>Ready</Button>
-              <Button cb={leaveLobby}>Leave</Button>
-            </div>
-          </div>
-        </section>
-      )}
-      {state.gameRunning && (
-        <>
-          <MouseScrollOverlay />
-          <Canvas canvasRef={canvasRef} />
-        </>
-      )}
+      <MouseScrollOverlay />
+      <Canvas canvasRef={canvasRef} />
     </>
   );
 }
