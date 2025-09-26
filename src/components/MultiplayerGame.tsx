@@ -86,7 +86,7 @@ function MultiplayerGame({ lobby }: { lobby: Lobby }) {
 
   if (!state.lobby) {
     return (
-      <MsgModal className={"bg-red-200"}>
+      <MsgModal className={"bg-error"}>
         <h1 className="text-2xl font-medium mr-auto">Error!</h1>
         <p>Lobby closed! Host has left the game.</p>
         <Button cb={leaveLobby}>Return to Lobbies</Button>
@@ -103,8 +103,10 @@ function MultiplayerGame({ lobby }: { lobby: Lobby }) {
           <ul>
             {state.lobby?.players.map((player) => {
               return (
-                <li key={player} className="p-3 w-full">
-                  {player === state.lobby?.host ? `${player} (host)` : player}
+                <li key={player.username} className="p-3 w-full">
+                  {player.username === state.lobby?.host
+                    ? `${player.username} (host)`
+                    : player.username}
                 </li>
               );
             })}

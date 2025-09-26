@@ -9,7 +9,7 @@ function Lobby() {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const { isPending, isError, data, error } = useQuery({
+  const { isError, data, error, isFetching } = useQuery({
     queryKey: ["lobby", id],
     queryFn: () => getLobby(Number(id) ?? 0),
     refetchOnWindowFocus: false,
@@ -19,13 +19,13 @@ function Lobby() {
     navigate("/lobbies");
   };
 
-  if (isPending) {
+  if (isFetching) {
     return <MsgModal>Loading Lobby info...</MsgModal>;
   }
 
   if (isError) {
     return (
-      <MsgModal className={"bg-red-200"}>
+      <MsgModal className={"bg-error"}>
         <h1 className="text-2xl font-medium mr-auto">Error!</h1>
         <p>{error.message}</p>
         <Button cb={leaveLobby}>Return to Lobbies</Button>
