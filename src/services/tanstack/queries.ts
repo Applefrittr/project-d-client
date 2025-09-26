@@ -5,35 +5,47 @@ export type Lobby = {
   name: string;
   playerCount: number;
   sockets: string[];
-  players: string[];
+  players: { username: string; ready: boolean }[];
   host: string;
 };
 
 export async function getLobbyList() {
-  const response = await fetch(`${serverBaseURL}/lobbies`);
-  if (!response.ok) {
-    throw new Error("Error fetching current lobbies");
+  try {
+    const response = await fetch(`${serverBaseURL}/lobbies`);
+    if (!response.ok) {
+      throw new Error("Error fetching current lobbies");
+    }
+    return response.json();
+  } catch (err) {
+    throw new Error("Failed to connect to server!");
   }
-  return response.json();
 }
 
 export async function getLobby(gameID: number) {
-  const response = await fetch(`${serverBaseURL}/lobbies/${gameID}`);
-  if (!response.ok) {
-    const err = await response.json();
-    throw new Error(err);
+  try {
+    const response = await fetch(`${serverBaseURL}/lobbies/${gameID}`);
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err);
+    }
+    return response.json();
+  } catch (err) {
+    throw new Error("Failed to connect to server!");
   }
-  return response.json();
 }
 
 export async function createLobby(lobby: Lobby) {
-  const response = await fetch(`${serverBaseURL}/lobbies/create`, {
-    mode: "cors",
-    method: "Post",
-    body: JSON.stringify(lobby),
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-  return response.json();
+  try {
+    const response = await fetch(`${serverBaseURL}/lobbies/create`, {
+      mode: "cors",
+      method: "Post",
+      body: JSON.stringify(lobby),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    return response.json();
+  } catch (err) {
+    throw new Error("Failed to connect to server!");
+  }
 }
