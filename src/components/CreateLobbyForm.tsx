@@ -38,6 +38,7 @@ function CreateLobbyForm({
       sockets: [],
       players: [],
       host: user,
+      gameRunning: false,
     };
 
     mutate(newLobby);

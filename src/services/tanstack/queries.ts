@@ -7,6 +7,7 @@ export type Lobby = {
   sockets: string[];
   players: { username: string; ready: boolean }[];
   host: string;
+  gameRunning: boolean;
 };
 
 export async function getLobbyList() {
@@ -17,6 +18,7 @@ export async function getLobbyList() {
     }
     return response.json();
   } catch (err) {
+    if (err instanceof Error) throw err;
     throw new Error("Failed to connect to server!");
   }
 }
@@ -30,6 +32,7 @@ export async function getLobby(gameID: number) {
     }
     return response.json();
   } catch (err) {
+    if (err instanceof Error) throw err;
     throw new Error("Failed to connect to server!");
   }
 }

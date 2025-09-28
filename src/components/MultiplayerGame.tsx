@@ -12,12 +12,14 @@ import MsgModal from "./MsgModal";
 
 type MultiplayerGameState = {
   lobby: Lobby | null;
+  lobbyRdy: boolean;
   gameRunning: boolean;
 };
 
 function MultiplayerGame({ lobby }: { lobby: Lobby }) {
   const [state, setState] = useState<MultiplayerGameState>({
     lobby,
+    lobbyRdy: false,
     gameRunning: false,
   });
   const user = useContext(RandomUserContext);
@@ -29,10 +31,14 @@ function MultiplayerGame({ lobby }: { lobby: Lobby }) {
     []
   );
 
+  const sendReadySignal = () => {
+    socket.emit("lby_ready", lobby.gameID, user);
+  };
+
   const sendStartSignal = () => {
     console.log("Sending sever start message");
     socket.emit("sv_start", lobby.gameID);
-    setState({ ...state, gameRunning: true });
+    // setState({ ...state, gameRunning: true });
   };
 
   const leaveLobby = () => {
@@ -50,12 +56,26 @@ function MultiplayerGame({ lobby }: { lobby: Lobby }) {
     });
 
     socket.on("lby_update", (lobbyData: Lobby) => {
-      setState({ ...state, lobby: lobbyData });
+      let rdyCount = lobbyData.players.reduce(
+        (acc, player) => acc + Number(player.ready),
+        0
+      );
+
+      rdyCount === 2
+        ? setState((prev) => {
+            return { ...prev, lobbyRdy: true, lobby: lobbyData };
+          })
+        : setState((prev) => {
+            return { ...prev, lobby: lobbyData };
+          });
     });
 
     socket.on("cl_start", () => {
       console.log("recieved server start msg");
       game.loop(performance.now());
+      setState((prev) => {
+        return { ...prev, gameRunning: true };
+      });
     });
 
     socket.on("connect_error", (error) => {
@@ -78,6 +98,7 @@ function MultiplayerGame({ lobby }: { lobby: Lobby }) {
   }, []);
 
   useEffect(() => {
+    console.log("gameRunning update!", state.gameRunning);
     if (canvasRef.current) {
       const ctx = canvasRef.current.getContext("2d");
       game.setCanvasContext(ctx);
@@ -96,25 +117,36 @@ function MultiplayerGame({ lobby }: { lobby: Lobby }) {
 
   if (!state.gameRunning) {
     return (
-      <section className="p-9 bg-amber-300 rounded-md border border-black">
+      <section className="p-9 bg-amber-300 rounded-md border border-black w-[600px] h-96 max-w-4/5 flex flex-col">
         <h1 className="text-4xl font-bold">{state.lobby?.name}</h1>
-        <section>
+        <div className="flex-auto">
           Players
           <ul>
             {state.lobby?.players.map((player) => {
               return (
-                <li key={player.username} className="p-3 w-full">
+                <li key={player.username} className="p-3 w-full flex gap-3">
                   {player.username === state.lobby?.host
                     ? `${player.username} (host)`
                     : player.username}
+                  {player.ready && (
+                    <span className="font-bold text-green-400">READY</span>
+                  )}
                 </li>
               );
             })}
           </ul>
-        </section>
-        <div className="flex gap-4">
-          <Button cb={sendStartSignal}>Ready</Button>
-          <Button cb={leaveLobby}>Leave</Button>
+        </div>
+        <div className="flex justify-between w-full items-center">
+          <div className="flex gap-4 flex-wrap">
+            <Button cb={sendReadySignal}>Ready</Button>
+            <Button cb={leaveLobby}>Leave</Button>
+          </div>
+          {state.lobby.host === user && state.lobbyRdy && (
+            <Button cb={sendStartSignal}>Start</Button>
+          )}
+          {state.lobby.host === user && !state.lobbyRdy && (
+            <Button disabled={true}>Start</Button>
+          )}
         </div>
       </section>
     );
