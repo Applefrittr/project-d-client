@@ -55,11 +55,12 @@ function MultiplayerGame({ lobby }: { lobby: Lobby }) {
       game.appendBufferQueue(state);
     });
 
-    socket.on("lby_update", (lobbyData: Lobby) => {
-      let rdyCount = lobbyData.players.reduce(
-        (acc, player) => acc + Number(player.ready),
-        0
-      );
+    socket.on("lby_update", (lobbyData: Lobby | null) => {
+      let rdyCount =
+        lobbyData?.players.reduce(
+          (acc, player) => acc + Number(player.ready),
+          0
+        ) ?? 0;
 
       rdyCount === 2
         ? setState((prev) => {
