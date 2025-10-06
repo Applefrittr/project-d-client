@@ -1,11 +1,17 @@
 import { serverBaseURL } from "../serverBaseURL";
 
+export type User = {
+  id: string;
+  username: string;
+  ready: boolean;
+};
+
 export type Lobby = {
   gameID: number;
   name: string;
   playerCount: number;
   sockets: string[];
-  players: { username: string; ready: boolean }[];
+  players: User[];
   host: string;
   gameRunning: boolean;
 };

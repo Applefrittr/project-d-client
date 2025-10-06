@@ -142,10 +142,10 @@ function MultiplayerGame({ lobby }: { lobby: Lobby }) {
             <Button cb={sendReadySignal}>Ready</Button>
             <Button cb={leaveLobby}>Leave</Button>
           </div>
-          {state.lobby.host === user && state.lobbyRdy && (
+          {state.lobby.host === user.id && state.lobbyRdy && (
             <Button cb={sendStartSignal}>Start</Button>
           )}
-          {state.lobby.host === user && !state.lobbyRdy && (
+          {state.lobby.host === user.id && !state.lobbyRdy && (
             <Button disabled={true}>Start</Button>
           )}
         </div>

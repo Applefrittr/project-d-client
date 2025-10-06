@@ -1,6 +1,6 @@
 import settings from "../engine/settings.json";
 
-let scrollInterval: number;
+let scrollInterval: NodeJS.Timeout;
 
 function mouseScroll(event: React.MouseEvent) {
   if (event.target instanceof HTMLDivElement) {

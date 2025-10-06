@@ -7,7 +7,7 @@ import { Link } from "react-router";
 import { RandomUserContext } from "../auth/demo/context/RandomUserContext";
 
 function AllLobbies() {
-  const user = useContext(RandomUserContext);
+  const { username } = useContext(RandomUserContext);
   const [displayForm, setdisplayForm] = useState(false);
   const [selectedLobby, setSelectedLobby] = useState<number | undefined>(
     undefined
@@ -25,7 +25,7 @@ function AllLobbies() {
         <header className="flex justify-between">
           <h1 className="font-medium text-2xl">Current Lobbies</h1>
           <div className="flex gap-4">
-            <p>{user}</p>
+            <p>{username}</p>
             <ul className="flex gap-2">
               <li>
                 <Link

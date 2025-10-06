@@ -37,7 +37,7 @@ function CreateLobbyForm({
       playerCount: 0,
       sockets: [],
       players: [],
-      host: user,
+      host: user.id,
       gameRunning: false,
     };
 
